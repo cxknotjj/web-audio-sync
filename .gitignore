@@ -11,6 +11,8 @@ node_modules/
 Thumbs.db
 desktop.ini
 
+store/malicious_dns_domain_detection/
+
 # 日志与临时文件
 *.log
 npm-debug.log*
@@ -22,3 +24,5 @@ npm-debug.log*
 
 # 真机测试脚手架：临时扩展副本 + hls.js + 测试流页面，只在本机用
 test-env/
+
+.tmp-frames/
