@@ -88,7 +88,7 @@ The shortcut can be changed at `edge://extensions/shortcuts`. You don't have to 
 | --- | --- |
 | Big number | Current delay in seconds. A minus sign means audio is early |
 | Slider | −10 s to +10 s |
-| `−1s` `−100` `归零` `+100` `+1s` | Quick presets |
+| `−1s` `−100` `Reset` `+100` `+1s` | Quick presets |
 | Level meter | Moves when there's sound, idle when there isn't. **Use this to check output** — not the player's own volume bar |
 | Status text | Current mode, and whether this page supports bidirectional. Bidirectional adds a route indicator |
 | Stop | Ends capture; audio returns to the page |
@@ -110,7 +110,7 @@ By default you can only make audio **later**. The extension captures audio the b
 
 Bidirectional mode takes a different path: it reads the audio the page has **already downloaded but not yet played**, and plays it ahead of time. That only works for streaming video (progressive download), not fully downloaded files.
 
-- **Enable**: start playback → click the icon → click 「启用双向」 on the panel. The page reloads once and comes back already in bidirectional mode (the reload is how the enhancement script gets registered — no second click needed)
+- **Enable**: start playback → click the icon → click **Enable bidirectional** on the panel. The page reloads once and comes back already in bidirectional mode (the reload is how the enhancement script gets registered — no second click needed)
 - **Routes**: ① reuse the page's segments (no extra traffic) / ② grab already-downloaded segments (no extra traffic, full build only) / ③ fetch a second stream (roughly double traffic)
 - **Buffering**: on sites that play through hls.js, the buffer target is raised from 30 s to 90 s — so "safe to advance" has more headroom and seeking doesn't stall at the edge (costs a few dozen MB of RAM, no extra traffic). Native HLS (where `video.src` is the `.m3u8` itself) buffers however the browser decides; there the advance limit stays at whatever the page has already downloaded
 - **Buffering, seeking, ad breaks, fullscreen, exit**: every behavior, automatic downgrade and fallback rule is documented in [USAGE.md (Chinese)](USAGE.md#3-双向模式)
@@ -148,15 +148,15 @@ Fixed; builds from 1.0.1 on include the fix. On sites that embed the player in a
 - Very small delays (tens of ms) are subtle; try ±1000 ms
 - If the number changes but the sound doesn't move at all, capture may have dropped — stop and start again
 
-**The panel says 「此页不支持双向」 (this page doesn't support bidirectional)**
+**The panel says "Not supported here"**
 
 No video element was found. The page may still be loading, the player may live in another frame, or the content hasn't loaded yet. Wait for the page to finish loading and playback to start.
 
-**The panel says 「启用双向」 and clicking it reloads the page**
+**The panel says "Enable bidirectional", and clicking it reloads the page**
 
 That's expected: the enhancement script has to be registered before the page loads, so the click registers it and reloads once. It enters bidirectional mode on its own when the page comes back — no second click.
 
-If it's still showing 「启用双向」 after the reload, the registration didn't go through (service worker was recycled, or site access was turned off). Check that the extension's site access isn't set to "on click" in the browser's extension manager, then try once more.
+If it's still showing "Enable bidirectional" after the reload, the registration didn't go through (service worker was recycled, or site access was turned off). Check that the extension's site access isn't set to "on click" in the browser's extension manager, then try once more.
 
 **In bidirectional mode, audio is out of sync after seeking**
 
@@ -170,17 +170,17 @@ That means route ③ ("fetch a second stream"). It's the fallback when the page 
 
 That's the buffer limit. How far you can go ahead equals how far the video has downloaded. Let it buffer longer to go further.
 
-**The video freezes in bidirectional mode and the panel says 「等缓冲 · 还差 N 秒」 (waiting for buffer)**
+**The video freezes in bidirectional mode and the panel says "Buffering · need N s"**
 
 It's not frozen — the extension is holding the picture until segments arrive (routes ① and ③ only). A shrinking number means normal waiting; if it never changes, the site can't feed it, and the extension automatically lowers the lead and resumes playback after a few seconds.
 
-**The panel says 「音频重新加载中，画面继续」 (audio reloading, video continues) and there's no sound**
+**The panel says "Audio reloading, picture continues" and there's no sound**
 
 That's the normal intermediate state of route ②: after seeking, audio is re-buffered in the background while the video keeps going. It usually reconnects within seconds; after 8 seconds the extension downgrades to route ③ (double traffic). If it happens often, this site is slow at serving segments; the extension handles it automatically.
 
 **After clicking reset, audio is still slightly late**
 
-The ~1.6 s zero-delay offset in route ② was fixed in 1.0.1. If you still see it, check the status on the right of the panel: 「音频重新加载中」 means wait for it to reconnect; 「可安全提前」 but still late means stop and capture again.
+The ~1.6 s zero-delay offset in route ② was fixed in 1.0.1. If you still see it, check the status on the right of the panel: "Audio reloading" means wait for it to reconnect; "Safe advance" but still late means stop and capture again.
 
 **There's a slight click when I drag**
 
@@ -281,7 +281,7 @@ Bidirectional mode is split into five modules, injected in dependency order:
 | `ads-enh-sync.js` | Sync loop: 250 ms alignment tick, buffer waits, seeking |
 | `ads-enhance.js` | Lifecycle: enter/exit bidirectional, failure downgrade |
 
-UI copy ships in Chinese and English, following the browser language. To add a third language, see the "界面文案" section of [`DEVELOPMENT.md`](DEVELOPMENT.md).
+UI copy ships in Chinese and English, following the browser language. To add a third language, see the UI-copy section of [`DEVELOPMENT.md`](DEVELOPMENT.md).
 
 </details>
 
