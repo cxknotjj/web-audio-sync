@@ -3,6 +3,9 @@
 /* ================================================================
  * MAIN world：在页面脚本之前劫持 MediaSource，把音频片段复制一份
  *
+ * 这个文件会**复制音频数据**，所以只在用户授权过的站点上注册（见 bg-auth.js）。
+ * 只改配置、不复制内容的 hls.js 缓冲 hook 在 inject-buffer.js 里，那个是全站的。
+ *
  * 为什么必须在 MAIN world：
  *   isolated world 里改 MediaSource.prototype 只影响扩展自己，
  *   页面播放器用的是另一份。

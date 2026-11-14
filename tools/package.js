@@ -50,6 +50,8 @@ const INCLUDE = [
   'ads-enhance.js',
   'content.js',
   'inject-main.js',
+  /* 全站注入的轻量脚本：只调 hls.js 的缓冲目标，不复制任何数据 */
+  'inject-buffer.js',
   'mux.min.js',
   'icons/icon16.png',
   'icons/icon32.png',
@@ -270,8 +272,18 @@ function assertManifest(mf, entries) {
     if (!(mf.permissions || []).includes(p)) problems.push(`代码用了 ${p} 但 manifest 没声明`);
   }
 
+  /* 1.1.0 起 host_permissions 是设计的一部分：inject-buffer.js 必须在
+     document_start 注入到所有站点，才能赶在页面创建 hls.js 实例之前把
+     缓冲目标调大。这里不再一律禁止，而是要求它真的对应一段代码 ——
+     权限和功能对不上，才是审核会盯的点。 */
   if (mf.host_permissions && mf.host_permissions.length) {
-    problems.push('存在 host_permissions，审核会重点问用途（当前设计不需要）');
+    const cs = mf.content_scripts || [];
+    const hasBuffer = cs.some(function (c) {
+      return (c.js || []).indexOf('inject-buffer.js') >= 0;
+    });
+    if (!hasBuffer) {
+      problems.push('声明了 host_permissions，但 content_scripts 里没有 inject-buffer.js，用途对不上');
+    }
   }
 
   return problems;

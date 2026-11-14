@@ -13,8 +13,21 @@
     "scripting",
     "debugger"
   ],
-  "optional_host_permissions": [
+  "host_permissions": [
     "*://*/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": [
+        "*://*/*"
+      ],
+      "js": [
+        "inject-buffer.js"
+      ],
+      "run_at": "document_start",
+      "world": "MAIN",
+      "all_frames": true
+    }
   ],
   "background": {
     "service_worker": "background.js"
