@@ -112,7 +112,7 @@ Bidirectional mode takes a different path: it reads the audio the page has **alr
 
 - **Enable**: start playback → click the icon → click 「启用双向」 on the panel. The page reloads once and comes back already in bidirectional mode (the reload is how the enhancement script gets registered — no second click needed)
 - **Routes**: ① reuse the page's segments (no extra traffic) / ② grab already-downloaded segments (no extra traffic, full build only) / ③ fetch a second stream (roughly double traffic)
-- **Buffering**: on every site, the player's buffer target is raised from 30 s to 90 s — so "safe to advance" has more headroom and seeking doesn't stall at the edge (costs a few dozen MB of RAM, no extra traffic)
+- **Buffering**: on sites that play through hls.js, the buffer target is raised from 30 s to 90 s — so "safe to advance" has more headroom and seeking doesn't stall at the edge (costs a few dozen MB of RAM, no extra traffic). Native HLS (where `video.src` is the `.m3u8` itself) buffers however the browser decides; there the advance limit stays at whatever the page has already downloaded
 - **Buffering, seeking, ad breaks, fullscreen, exit**: every behavior, automatic downgrade and fallback rule is documented in [USAGE.md (Chinese)](USAGE.md#3-双向模式)
 
 > Route ② is the only difference between the full and store builds. It requires the `debugger` permission, whose install warnings ("Read and change all your data on all websites", "Access the page debugger backend") are too heavy for a store listing.
