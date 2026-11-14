@@ -15,9 +15,9 @@ A browser extension that adds an adjustable delay to **the current tab's audio**
 
 > **▶ Try it without installing anything** — [open the live page](https://deerfect.me/web-audio-sync/): the extension's own panel is built in, so you can drag the 52-second video's audio later or earlier and hit zero to restore sync. If the link won't open, download [`index.html`](index.html) and [`demo-1min.mp4`](demo-1min.mp4), serve the folder (e.g. `npx serve`) and open the local URL. Double-clicking the file only plays the picture — browsers block Web Audio processing of `file://` video.
 
-![The player keeps working; a panel appears in the bottom-right corner](store/screenshot-4-live-delay.png)
+![Drag the slider and the audio shifts instantly](store/demo.gif)
 
-<sub>In real use: the player keeps working, and a panel appears in the bottom-right corner.</sub>
+<sub>In real use: the player keeps working and the panel sits in the bottom-right corner; dragging the slider shifts the audio immediately (GIFs carry no sound).</sub>
 
 ---
 
