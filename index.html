@@ -3,640 +3,1104 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>音画不同步调节器 · 交互演示</title>
+<title>音画不同步调节器 · 在线体验</title>
 <style>
   :root {
-    --bg: #0b0d10;
-    --card: #121519;
-    --line: #232a32;
-    --text: #e7edf5;
-    --muted: #8a94a3;
-    --cyan: #4dd9ff;
-    --green: #45e08a;
-    --amber: #ffb454;
-    --red: #ff5f56;
+    --bg: #0b0f14;
+    --card: #11161e;
+    --line: #1e2733;
+    --fg: #e6edf3;
+    --dim: #78838f;
+    --cyan: #22d3ee;
+    --green: #3fb950;
   }
   * { box-sizing: border-box; }
-  html, body { height: 100%; }
+  html, body { margin: 0; }
   body {
-    margin: 0;
     min-height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    overflow: auto;
-    background: var(--bg);
-    color: var(--text);
-    font-family: "Microsoft YaHei UI", "Microsoft YaHei", "PingFang SC",
-      -apple-system, "Segoe UI", sans-serif;
-    -webkit-font-smoothing: antialiased;
+    background: radial-gradient(1200px 600px at 20% -10%, #131a24 0%, var(--bg) 55%);
+    color: var(--fg);
+    font: 13px/1.6 -apple-system, "Segoe UI", "Microsoft YaHei", system-ui, sans-serif;
   }
-  .rec * { transition: none !important; animation: none !important; }
-
-  .wrap {
-    flex: none;
-    width: 920px;
-    height: 560px;
-    margin: 0 auto;
-    padding: 22px 28px 18px;
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
+  header {
+    display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+    padding: 12px 16px; border-bottom: 1px solid var(--line);
   }
-
-  header { display: flex; align-items: center; justify-content: space-between; }
-  .brand { display: flex; align-items: center; gap: 9px; font-size: 16px; font-weight: 700; letter-spacing: .2px; }
-  .brand i { width: 9px; height: 9px; border-radius: 50%; background: var(--green); box-shadow: 0 0 10px rgba(69,224,138,.7); }
-  .header-right { display: flex; align-items: center; gap: 10px; color: var(--muted); font-size: 12px; }
-  .chip {
-    padding: 4px 9px; border: 1px solid var(--line); border-radius: 999px;
-    color: #b9c3d0; background: #12161b; font-size: 12px;
+  .brand { display: flex; align-items: center; gap: 8px; font-weight: 600; }
+  .brand i {
+    width: 9px; height: 9px; border-radius: 50%; background: var(--green);
+    box-shadow: 0 0 10px rgba(63, 185, 80, .7);
   }
-
-  main { display: flex; gap: 22px; align-items: flex-start; }
-
-  /* ---------------- 演示画面 ---------------- */
-  .stage {
-    width: 566px;
-    height: 348px;
-    padding: 16px 18px;
-    background: linear-gradient(180deg, #14181d 0%, #101318 100%);
-    border: 1px solid var(--line);
-    border-radius: 16px;
-    position: relative;
-    display: flex;
-    flex-direction: column;
-  }
-  .stage-head { display: flex; align-items: center; justify-content: space-between; }
   .tag {
-    font-size: 11px; letter-spacing: .12em; color: #7f8a99;
-    border: 1px solid #2b333d; border-radius: 5px; padding: 3px 7px;
+    padding: 2px 8px; border: 1px solid var(--line); border-radius: 999px;
+    color: var(--dim); font-size: 12px;
   }
-  .pill {
-    font-size: 12px; padding: 4px 10px; border-radius: 999px;
-    background: rgba(255,180,84,.12); color: var(--amber);
-    border: 1px solid rgba(255,180,84,.28);
-  }
-  .pill.ok { background: rgba(69,224,138,.12); color: var(--green); border-color: rgba(69,224,138,.3); }
+  #stat { color: var(--dim); font-variant-numeric: tabular-nums; margin-left: auto; }
+  a { color: var(--cyan); text-decoration: none; }
+  a:hover { text-decoration: underline; }
 
-  .ruler { margin-top: 14px; }
-  .lane { display: flex; align-items: center; height: 58px; }
-  .lanelabel { width: 76px; flex: none; line-height: 1.25; }
-  .lanelabel b { display: block; font-size: 13px; font-weight: 600; }
-  .lanelabel span { font-size: 11px; color: var(--muted); }
-  .lanelabel.hot b { color: var(--cyan); }
-  .track { position: relative; flex: 1; height: 100%; }
-  .track::before {
-    content: ""; position: absolute; left: 0; right: 0; top: 50%; height: 1px;
-    background: linear-gradient(90deg, #262e38, #1b2128);
+  main { max-width: 1024px; margin: 0 auto; padding: 20px 16px 40px; }
+  .player {
+    position: relative; background: #000; border: 1px solid var(--line);
+    border-radius: 10px; overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, .5);
   }
-  .dot {
-    position: absolute; top: 50%; width: 12px; height: 12px; margin: -6px 0 0 -6px;
-    border-radius: 50%; background: #39424e; border: 1px solid #4a5563;
-    transition: left .32s cubic-bezier(.4,0,.2,1), background .2s, box-shadow .2s;
-  }
-  .dot.a { background: #3a4653; border-color: #5b6a7a; }
-  .dot.b { background: rgba(77,217,255,.16); border-color: rgba(77,217,255,.55); }
-  .dot.hot.a { background: #cfe3f5; border-color: #eaf5ff; box-shadow: 0 0 12px rgba(207,227,245,.55); }
-  .dot.hot.b { background: var(--cyan); border-color: var(--cyan); box-shadow: 0 0 14px rgba(77,217,255,.6); }
+  video { display: block; width: 100%; aspect-ratio: 16 / 9; background: #000; }
 
-  .gap { position: relative; height: 26px; margin-left: 76px; }
-  .gap .bar {
-    position: absolute; left: 30px; top: 12px; height: 2px; background: var(--amber);
-    border-radius: 2px;
-  }
-  .gap .bar::before, .gap .bar::after {
-    content: ""; position: absolute; top: -4px; width: 2px; height: 10px; background: var(--amber);
-  }
-  .gap .bar::before { left: 0; }
-  .gap .bar::after { right: 0; }
-  .gap .txt {
-    position: absolute; top: 0; font-size: 11px; color: var(--amber);
-    white-space: nowrap; font-variant-numeric: tabular-nums;
-  }
-  .gap.ok .bar { background: var(--green); }
-  .gap.ok .bar::before, .gap.ok .bar::after { background: var(--green); }
-  .gap.ok .txt { color: var(--green); }
+  .hint { margin: 16px 2px 0; color: var(--dim); font-size: 12.5px; }
+  .hint b { color: var(--fg); font-weight: 500; }
 
-  .offsetbox { margin-top: auto; display: flex; align-items: flex-end; justify-content: space-between; }
-  .offnum { font-variant-numeric: tabular-nums; line-height: 1; }
-  .offnum b { font-size: 40px; font-weight: 700; color: var(--amber); letter-spacing: 1px; }
-  .offnum.ok b { color: var(--green); }
-  .offnum small { font-size: 14px; color: var(--muted); margin-left: 4px; }
-  .offnote { font-size: 12px; color: var(--muted); margin-top: 8px; }
-  .meter2 { display: flex; gap: 3px; align-items: flex-end; height: 26px; }
-  .meter2 i { width: 4px; border-radius: 2px; background: #2a333d; }
-
-  /* ---------------- 面板（复刻扩展） ---------------- */
-  .panel {
-    width: 300px;
-    background: #13161a;
-    border: 1px solid #272e37;
-    border-radius: 14px;
-    box-shadow: 0 18px 40px rgba(0,0,0,.5);
-    font-size: 13px;
-    user-select: none;
+  .steps {
+    display: flex; flex-wrap: wrap; gap: 10px; margin: 12px 0 0;
+    padding: 0; list-style: none; counter-reset: step;
   }
-  .panel-head {
-    display: flex; align-items: center; gap: 8px;
-    padding: 12px 14px; border-bottom: 1px solid #1f252d;
+  .steps li {
+    flex: 1 1 220px; padding: 10px 12px; background: var(--card);
+    border: 1px solid var(--line); border-radius: 8px; color: #b9c3d0;
+    counter-increment: step;
   }
-  .panel-head .led { width: 8px; height: 8px; border-radius: 50%; background: var(--green); }
-  .panel-head .title { flex: 1; font-size: 13px; }
-  .panel-head .win { color: #65707e; font-size: 14px; letter-spacing: 6px; }
-  .panel-body { padding: 14px 14px 12px; }
-  .bignum { text-align: center; font-variant-numeric: tabular-nums; margin: 2px 0 12px; }
-  .bignum b { font-size: 40px; font-weight: 700; color: var(--cyan); letter-spacing: 1px; }
-  .bignum small { font-size: 13px; color: #7f8a99; }
-  .slider-wrap { padding: 4px 2px 14px; }
-  input[type=range] {
-    -webkit-appearance: none; appearance: none;
-    width: 100%; height: 18px; background: transparent; cursor: pointer; display: block;
-  }
-  input[type=range]::-webkit-slider-runnable-track {
-    height: 3px; border-radius: 2px;
-    background: linear-gradient(90deg, var(--cyan) 0 var(--p, 50%), #333b45 var(--p, 50%) 100%);
-  }
-  input[type=range]::-webkit-slider-thumb {
-    -webkit-appearance: none; appearance: none;
-    width: 16px; height: 16px; margin-top: -6.5px; border-radius: 50%;
-    background: #f2fbff; border: 3px solid var(--cyan);
-    box-shadow: 0 0 12px rgba(77,217,255,.5);
-  }
-  .presets { display: flex; gap: 6px; }
-  .presets button {
-    flex: 1; height: 30px; border-radius: 7px; border: 1px solid #2a323c;
-    background: #1a1f25; color: #c3ccd8; font-size: 12px; cursor: pointer;
-    font-family: inherit;
-  }
-  .presets button:hover { border-color: #3a4753; }
-  .chips { display: flex; justify-content: space-between; margin-top: 12px; }
-  .chips span {
-    font-size: 11px; padding: 4px 9px; border-radius: 6px;
-    border: 1px solid #2a323c; background: #1a1f25; color: #aab5c2;
-  }
-  .chips .ghost { color: #7e8896; border-style: dashed; }
-  .meter { margin-top: 12px; height: 3px; border-radius: 2px; background: #2a323c; overflow: hidden; }
-  .meter i { display: block; height: 100%; width: 30%; background: var(--green); border-radius: 2px; }
-  .panel-foot {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 11px 14px 13px; border-top: 1px solid #1f252d;
-  }
-  .panel-foot .hint { font-size: 11px; color: #78838f; }
-  .panel-foot button {
-    height: 30px; padding: 0 15px; border-radius: 7px;
-    border: 1px solid rgba(255,95,86,.65); background: transparent;
-    color: var(--red); font-size: 12px; cursor: pointer; font-family: inherit;
+  .steps li::before {
+    content: "0" counter(step); display: inline-block; margin-right: 8px;
+    color: var(--cyan); font-variant-numeric: tabular-nums;
   }
 
-  /* ---------------- 底部 ---------------- */
-  footer { margin-top: auto; }
-  .caption { display: flex; align-items: center; gap: 9px; font-size: 15px; color: #d6dee8; }
-  .step {
-    flex: none; width: 20px; height: 20px; border-radius: 50%;
-    background: #1b222a; border: 1px solid #2d3742; color: #9fabb9;
-    font-size: 11px; display: grid; place-items: center;
+  .note { margin-top: 16px; color: #5d6773; font-size: 12px; line-height: 1.9; }
+  .warn {
+    margin: 14px 0 0; padding: 10px 12px; border-radius: 8px;
+    border: 1px solid rgba(210, 153, 34, .35); background: rgba(210, 153, 34, .08);
+    color: #d29922; font-size: 12.5px; line-height: 1.7;
   }
-  .step.on { background: rgba(77,217,255,.14); border-color: rgba(77,217,255,.5); color: var(--cyan); }
-  .note { margin-top: 8px; font-size: 11px; color: #6d7784; line-height: 1.5; }
-
-  /* 录屏用的假鼠标 */
-  .cursor { position: fixed; left: 0; top: 0; z-index: 30; pointer-events: none; display: none; }
-  .cursor .ring {
-    position: absolute; left: -13px; top: -13px; width: 26px; height: 26px;
-    border-radius: 50%; border: 2px solid rgba(77,217,255,.55);
-    background: rgba(77,217,255,.12);
+  .warn code { color: #e6edf3; background: rgba(255, 255, 255, .06); padding: 1px 5px; border-radius: 4px; }
+  button {
+    background: #1a2330; color: #cbd5e1; border: 1px solid #2a3440;
+    border-radius: 6px; padding: 5px 10px; cursor: pointer; font: inherit;
   }
-  .cursor svg { position: absolute; left: -2px; top: -2px; filter: drop-shadow(0 2px 3px rgba(0,0,0,.6)); }
-
-  /* 开始按钮 */
-  .start {
-    position: absolute; inset: 0; display: grid; place-items: center;
-    background: rgba(11,13,16,.55); backdrop-filter: blur(1px); border-radius: 16px;
-  }
-  .start button {
-    padding: 12px 26px; border-radius: 999px; border: 1px solid rgba(77,217,255,.55);
-    background: rgba(77,217,255,.12); color: var(--cyan);
-    font-size: 14px; font-family: inherit; cursor: pointer;
-    box-shadow: 0 0 24px rgba(77,217,255,.18);
-  }
-  .start small { display: block; text-align: center; margin-top: 10px; color: #8b95a3; font-size: 11px; }
+  button:hover { border-color: var(--cyan); color: var(--cyan); }
 </style>
 </head>
 <body>
-<div class="wrap" id="wrap">
-  <header>
-    <div class="brand"><i></i>音画不同步调节器</div>
-    <div class="header-right">
-      <span>拖动滑块，声音实时跟着走</span>
-      <span class="chip">无需安装</span>
-    </div>
-  </header>
 
-  <main>
-    <section class="stage">
-      <div class="stage-head">
-        <span class="tag">演示画面</span>
-        <span class="pill" id="pill">声音比口型晚 0.60 秒</span>
-      </div>
+<header>
+  <div class="brand"><i></i>音画不同步调节器</div>
+  <span class="tag">在线体验</span>
+  <span id="stat">初始化…</span>
+  <button id="replay" type="button">重播</button>
+</header>
 
-      <div class="ruler">
-        <div class="lane">
-          <div class="lanelabel" id="labelA"><b>画面</b><span>口型</span></div>
-          <div class="track" id="trackA"></div>
-        </div>
-        <div class="gap" id="gap">
-          <div class="bar" id="gapBar"></div>
-          <div class="txt" id="gapTxt">600 ms</div>
-        </div>
-        <div class="lane">
-          <div class="lanelabel" id="labelB"><b>声音</b><span>听到的</span></div>
-          <div class="track" id="trackB"></div>
-        </div>
-      </div>
+<main>
+  <div class="player">
+    <video id="v" src="demo-1min.mp4" playsinline controls preload="metadata"></video>
+  </div>
 
-      <div class="offsetbox">
-        <div>
-          <div class="offnum" id="offnum"><b id="offval">+600</b><small>ms</small></div>
-          <div class="offnote" id="offnote">声音比画面晚</div>
-        </div>
-        <div class="meter2" id="meter2"></div>
-      </div>
+  <p class="warn" id="fileWarn" hidden>
+    当前是本地双击打开（file://），浏览器会禁止网页处理本地视频的音频，内置延迟没有声音。
+    请用在线版，或在本目录运行 <code>npx serve</code> / <code>python -m http.server</code>，
+    再访问 <code>http://localhost:3000</code> 这样的本地地址。
+  </p>
 
-      <div class="start" id="start">
-        <div>
-          <button id="startBtn">▶ 开始演示</button>
-          <small>会播放节拍声，建议戴耳机</small>
-        </div>
-      </div>
-    </section>
+  <p class="hint">
+    右下角就是扩展同款面板，已经内置在这页里 —— <b>不用安装，点播放后直接拖</b>。
+  </p>
 
-    <aside class="panel" id="panel">
-      <div class="panel-head">
-        <span class="led"></span>
-        <span class="title">音画不同步调节器</span>
-        <span class="win">− ×</span>
-      </div>
-      <div class="panel-body">
-        <div class="bignum"><b id="bignum">0.600</b><small>s</small></div>
-        <div class="slider-wrap">
-          <input id="slider" type="range" min="0" max="1200" step="10" value="600" aria-label="调节延迟">
-        </div>
-        <div class="presets">
-          <button data-add="-1000">−1s</button>
-          <button data-add="-100">−100</button>
-          <button data-add="0">归零</button>
-          <button data-add="100">+100</button>
-          <button data-add="1000">+1s</button>
-        </div>
-        <div class="chips">
-          <span>延迟</span>
-          <span class="ghost">演示模式</span>
-        </div>
-        <div class="meter"><i id="meterFill"></i></div>
-      </div>
-      <div class="panel-foot">
-        <span class="hint">只延后声音 · 滚轮可调</span>
-        <button id="stopBtn">停止</button>
-      </div>
-    </aside>
-  </main>
+  <ol class="steps">
+    <li>点播放，让视频先出声</li>
+    <li>拖面板滑块（或滚轮、←→）让声音变晚或提前</li>
+    <li>点归零，声音重新和口型对上</li>
+  </ol>
 
-  <footer>
-    <div class="caption"><span class="step on" id="step">1</span><span id="caption">声音总比口型晚半拍，先拖一下滑块</span></div>
-    <div class="note">演示页：节拍声由浏览器实时合成，滑块控制的是真实延迟（DelayNode）；不采集标签页音频，也不需要装扩展。</div>
-  </footer>
-</div>
+  <p class="note">
+    面板和延迟链路都来自扩展本身，区别只是这里处理的是本页视频的声音。
+    想调节任意网站、任意播放器，再装扩展：<a href="https://microsoftedge.microsoft.com/addons/detail/dppjkonmajnmkgepepheieignphmbkfe" target="_blank" rel="noopener">Edge 加载项商店</a>
+    · <a href="https://github.com/cxknotjj/web-audio-sync" target="_blank" rel="noopener">从源码安装</a>。
+    <br>
+    装了扩展后请把这里的值归零，避免两段延迟叠加。这页是完整的本地文件，双向模式（让声音提前）需要边下边播的流媒体，所以这里只演示延后。
+    <br>
+    演示片段：<a href="https://durian.blender.org/" target="_blank" rel="noopener">Sintel 预告片</a> © Blender Foundation，CC BY 3.0，随页面本地加载。
+  </p>
+</main>
 
-<div class="cursor" id="cursor">
-  <span class="ring"></span>
-  <svg width="18" height="22" viewBox="0 0 18 22">
-    <path d="M2 2 L2 17 L6.4 13.2 L9.2 20 L12.3 18.6 L9.5 12 L15.4 11.8 Z"
-      fill="#fff" stroke="#0b0d10" stroke-width="1.4" stroke-linejoin="round"/>
-  </svg>
-</div>
+<script>'use strict';
 
-<script>
+/* ================================================================
+ * 界面文案的多语言（中文 / 英文）
+ *
+ * 扩展的原始文案是中文，写在调用点的第二个参数里；英文来自
+ * _locales/en/messages.json。取不到翻译就退回中文原句 —— 界面上
+ * 永远不会露出一个 key 名。
+ *
+ * 用法：T('uiStop', '停止')
+ *   uiStop   messages.json 里的键（只用 ASCII，Chrome 不接受中文键名）
+ *   停止     中文原文，也是英文缺失时的兜底
+ *
+ * 为什么不用 chrome.i18n 直接替换全部文案：_locales 是静态 JSON，没法
+ * 表达「'还差 ' + 1.2 + 's'」这种拼接；把原文留在代码里既能读，也能在
+ * 翻译缺失时降级，还省掉一次全项目扫描。
+ * ================================================================ */
+
 (function () {
-  'use strict';
+  window.ADS = window.ADS || {};
+  if (window.ADS.i18n) return;
 
-  var $ = function (id) { return document.getElementById(id); };
-  var BEAT = 1.0;              /* 节拍间隔（秒） */
-  var MAX_DELAY = 1200;        /* ms */
-  var PX_PER_MS = 0.0833;      /* 时间轴比例：1200ms ≈ 100px */
-  var trash = [];
+  let lang = 'zh';
+  try {
+    const raw = (window.chrome && chrome.i18n && chrome.i18n.getUILanguage())
+      || (navigator && navigator.language) || 'zh';
+    lang = /^zh/i.test(String(raw)) ? 'zh' : 'en';
+  } catch (e) {}
 
-  var params = new URLSearchParams(location.search);
-  var recT = params.has('t') ? parseFloat(params.get('t')) : null;
-  var isRec = recT !== null && isFinite(recT);
-  if (isRec) document.body.classList.add('rec');
-
-  var state = { delay: 600, ctx: null, delayNode: null, analyser: null, timer: null, next: 0, running: false };
-
-  /* ---------------- 时间轴 ---------------- */
-  var BASE = [20, 120, 220, 320];
-  var dotA = [], dotB = [];
-  BASE.forEach(function (x) {
-    var a = document.createElement('i');
-    a.className = 'dot a';
-    a.style.left = x + 'px';
-    $('trackA').appendChild(a);
-    dotA.push(a);
-
-    var b = document.createElement('i');
-    b.className = 'dot b';
-    b.style.left = x + 'px';
-    $('trackB').appendChild(b);
-    dotB.push(b);
-  });
-
-  var bar = $('meter2');
-  var bars = [];
-  for (var i = 0; i < 18; i++) {
-    var el = document.createElement('i');
-    el.style.height = (4 + (i % 6) * 2) + 'px';
-    bar.appendChild(el);
-    bars.push(el);
+  /**
+   * 取一条界面文案。
+   * @param {string} key messages.json 里的键
+   * @param {string} zh 中文原文（英文缺失时用它）
+   * @returns {string}
+   */
+  function t(key, zh) {
+    if (lang === 'zh') return zh;
+    let s = '';
+    try { s = chrome.i18n.getMessage(key) || ''; } catch (e) {}
+    return s || zh;
   }
 
-  function clamp(v) { return Math.max(0, Math.min(MAX_DELAY, Math.round(v))); }
+  window.ADS.i18n = { t: t, lang: lang };
+})();
+</script>
+<script>'use strict';
 
-  function paintDelay(ms) {
-    state.delay = ms;
-    var pct = (ms / MAX_DELAY) * 100;
-    var slider = $('slider');
-    if (slider.value !== String(ms)) slider.value = String(ms);
-    slider.style.setProperty('--p', pct + '%');
-    $('bignum').textContent = (ms / 1000).toFixed(3);
-    $('offval').textContent = (ms > 0 ? '+' : '') + ms;
-    $('offnum').classList.toggle('ok', ms === 0);
-    $('offnote').textContent = ms === 0 ? '已经对齐' : '声音比画面晚';
+/* ================================================================
+ * 面板与提示的样式常量
+ *
+ * 抽出来的原因：两个 shadow root 的内联 CSS 有 270 多行，
+ * 混在逻辑里会把 content.js 撑到看不出结构。
+ * 这里只放字符串，不碰 DOM。
+ * ================================================================ */
 
-    var shift = ms * PX_PER_MS;
-    dotB.forEach(function (d, idx) { d.style.left = (BASE[idx] + shift) + 'px'; });
+/* 面板里的静态文案也要跟着界面语言走。ads-i18n.js 先于本文件注入。
+ *
+ * 这里必须用 var 而不是 const：注入是按文件逐个执行、共享同一个全局作用域，
+ * 同一个文件被注入第二次时，顶层 const 会直接抛
+ * 「Identifier 'T' has already been declared」，整份脚本就此不执行 ——
+ * 面板的样式和结构全没了。var 重复声明是合法的，重复注入最多是白做一次。 */
+var T = (function () {
+  const i = window.ADS && window.ADS.i18n;
+  return i ? i.t : function (key, zh) { return zh; };
+})();
 
-    var ok = ms < 20;
-    $('gap').classList.toggle('ok', ok);
-    $('gapBar').style.width = Math.max(0, shift) + 'px';
-    $('gapTxt').textContent = ok ? '已对齐' : ms + ' ms';
-    $('gapTxt').style.left = (30 + Math.max(0, shift) + 8) + 'px';
-    $('gapTxt').style.display = ok ? 'none' : 'block';
-    $('gapBar').style.display = ok ? 'none' : 'block';
+window.ADS_STYLE = {
+  /* 提示条用 ok / 失败两套配色，所以做成函数 */
+  toast: function (ok) {
+    const accent = ok ? '#3fb950' : '#f85149';
+    const bg = ok ? 'rgba(10, 18, 13, .96)' : 'rgba(20, 14, 14, .96)';
+    const edge = ok ? 'rgba(63, 185, 80, .45)' : 'rgba(248, 81, 73, .45)';
+    return `
+      <style>
+    :host {
+      all: initial;
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 2147483647;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif;
+    }
+    .toast {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      max-width: 460px;
+      padding: 11px 12px 11px 14px;
+      border-radius: 9px;
+      background: ${bg};
+      border: 1px solid ${edge};
+      box-shadow: 0 8px 28px rgba(0, 0, 0, .45);
+      color: #e6edf3;
+      font-size: 12.5px;
+      line-height: 1.55;
+    }
+    .bar {
+      width: 2px;
+      align-self: stretch;
+      border-radius: 1px;
+      background: ${accent};
+      flex: none;
+    }
+    .txt { flex: 1; user-select: text; }
+    .x {
+      flex: none;
+      width: 18px;
+      height: 18px;
+      padding: 0;
+      border: 0;
+      border-radius: 4px;
+      background: transparent;
+      color: #8b949e;
+      font-size: 14px;
+      line-height: 1;
+      cursor: pointer;
+      font-family: inherit;
+    }
+    .x:hover { background: rgba(255, 255, 255, .1); color: #e6edf3; }
+      </style>
+      <div class="toast" role="status" aria-live="polite">
+        <span class="bar"></span>
+        <span class="txt"></span>
+        <button class="x" type="button" title="${T('uiClose', '关闭')}" aria-label="${T('uiCloseAria', '关闭提示')}">×</button>
+      </div>`;
+  },
 
-    var linked = state.ctx && state.running;
-    if (linked) {
-      var node = state.delayNode;
-      var now = state.ctx.currentTime;
-      node.delayTime.cancelScheduledValues(now);
-      node.delayTime.setValueAtTime(node.delayTime.value, now);
-      node.delayTime.linearRampToValueAtTime(ms / 1000, now + 0.06);
+  panel: `
+    <style>
+    :host {
+      all: initial;
+      position: fixed;
+      right: 18px;
+      bottom: 18px;
+      z-index: 2147483647;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif;
+      -webkit-font-smoothing: antialiased;
     }
 
-    setCaption(ms);
-    syncStart();
+    .panel {
+      width: 268px;
+      border-radius: 10px;
+      background: rgba(15, 18, 22, .94);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, .09);
+      box-shadow: 0 8px 28px rgba(0, 0, 0, .45);
+      color: #e6edf3;
+      overflow: hidden;
+      user-select: none;
+    }
+
+    .head {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 10px;
+      cursor: move;
+      background: rgba(255, 255, 255, .03);
+      border-bottom: 1px solid rgba(255, 255, 255, .06);
+    }
+
+    .dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #3fb950;
+      flex: none;
+    }
+
+    .title {
+      font-size: 11.5px;
+      font-weight: 500;
+      letter-spacing: .2px;
+      color: #e6edf3;
+    }
+
+    .grow { flex: 1; }
+
+    .icon {
+      width: 18px;
+      height: 18px;
+      border: 0;
+      border-radius: 4px;
+      background: transparent;
+      color: #8b949e;
+      cursor: pointer;
+      font-size: 13px;
+      line-height: 1;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: inherit;
+    }
+
+    .icon:hover { background: rgba(255, 255, 255, .08); color: #e6edf3; }
+
+    .body { padding: 10px 12px 11px; }
+
+    .panel.collapsed .body { display: none; }
+
+    .readout {
+      display: flex;
+      align-items: baseline;
+      justify-content: center;
+      gap: 3px;
+      margin-bottom: 8px;
+    }
+
+    .num {
+      font: 500 25px/1.1 ui-monospace, "SF Mono", Consolas, monospace;
+      font-variant-numeric: tabular-nums;
+      letter-spacing: -.5px;
+      color: #8b949e;
+      transition: color .18s;
+    }
+
+    .num.pos { color: #22d3ee; }
+
+    .unit { font-size: 11px; color: #6b7280; }
+
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 16px;
+      background: transparent;
+      cursor: pointer;
+      display: block;
+      margin: 0;
+    }
+
+    input[type="range"]::-webkit-slider-runnable-track {
+      height: 3px;
+      border-radius: 2px;
+      /* 两段填充：从 0 点向上界画，negative 时就是中点往左 */
+      background: linear-gradient(to right,
+        rgba(255,255,255,.12) 0%, rgba(255,255,255,.12) var(--lo, 50%),
+        rgba(34,211,238,.85) var(--lo, 50%), rgba(34,211,238,.85) var(--hi, 50%),
+        rgba(255,255,255,.12) var(--hi, 50%), rgba(255,255,255,.12) 100%);
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 12px;
+      height: 12px;
+      margin-top: -4.5px;
+      border-radius: 50%;
+      background: #e6edf3;
+      border: 2px solid #22d3ee;
+    }
+
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 4px;
+      margin: 8px 0 0;
+    }
+
+    .steps button {
+      padding: 4px 0;
+      font-size: 10.5px;
+      color: #8b949e;
+      background: rgba(255, 255, 255, .05);
+      border: 1px solid rgba(255, 255, 255, .07);
+      border-radius: 4px;
+      cursor: pointer;
+      font-family: inherit;
+    }
+
+    .steps button:hover { color: #e6edf3; background: rgba(255, 255, 255, .1); }
+
+    .mode {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin: 7px 0 0;
+    }
+
+    .mode-tag {
+      padding: 2px 7px;
+      border-radius: 4px;
+      background: rgba(255, 255, 255, .06);
+      color: #8b949e;
+      font-size: 10px;
+    }
+
+    .mode-tag.enh {
+      background: rgba(34, 211, 238, .16);
+      color: #22d3ee;
+    }
+
+    .mode-btn {
+      margin-left: auto;
+      padding: 3px 9px;
+      font-size: 10px;
+      font-family: inherit;
+      color: #8b949e;
+      background: transparent;
+      border: 1px solid rgba(255, 255, 255, .12);
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .mode-btn:hover { color: #e6edf3; border-color: rgba(255, 255, 255, .26); }
+    .mode-btn[hidden] { display: none; }
+
+    /* 双向链路指示条：虚线 = 还没启用、只是预告；实线高亮 = 正在走这条 */
+    .route {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      margin: 6px 0 0;
+      padding: 3px 7px;
+      border-radius: 4px;
+      border: 1px dashed rgba(255, 255, 255, .1);
+      background: rgba(255, 255, 255, .025);
+      font-size: 10px;
+      line-height: 1.5;
+      color: #6b7280;
+    }
+
+    .route[hidden] { display: none; }
+
+    .route.on {
+      border-style: solid;
+      border-color: rgba(34, 211, 238, .3);
+      background: rgba(34, 211, 238, .09);
+      color: #a8c4ce;
+    }
+
+    .route-id {
+      flex: none;
+      width: 12px;
+      text-align: center;
+      color: inherit;
+      opacity: .75;
+    }
+
+    .route-name {
+      flex: 1;
+      min-width: 0;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
+
+    .route-meta {
+      flex: none;
+      font-variant-numeric: tabular-nums;
+      opacity: .85;
+    }
+
+    .meter {
+      height: 2px;
+      margin-top: 9px;
+      border-radius: 1px;
+      background: rgba(255, 255, 255, .07);
+      overflow: hidden;
+    }
+
+    .bar {
+      height: 100%;
+      width: 0;
+      background: #3fb950;
+      transition: width .12s linear;
+    }
+
+    .foot {
+      display: flex;
+      align-items: center;
+      margin-top: 9px;
+      gap: 8px;
+    }
+
+    .tip {
+      font-size: 10px;
+      color: #6b7280;
+      flex: 1;
+      line-height: 1.4;
+    }
+
+    .stop {
+      padding: 4px 10px;
+      font-size: 10.5px;
+      color: #f85149;
+      background: transparent;
+      border: 1px solid rgba(248, 81, 73, .35);
+      border-radius: 4px;
+      cursor: pointer;
+      font-family: inherit;
+      flex: none;
+    }
+
+    .stop:hover { background: rgba(248, 81, 73, .1); }
+    </style>
+
+    <div class="panel">
+      <div class="head">
+        <span class="dot"></span>
+        <span class="title">${T('uiTitle', '音画不同步调节器')}</span>
+        <span class="grow"></span>
+        <button class="icon" data-act="collapse" title="${T('uiCollapse', '收起')}" aria-label="${T('uiCollapseAria', '收起面板')}">−</button>
+        <button class="icon" data-act="close" title="${T('uiStopClose', '停止并关闭')}" aria-label="${T('uiStopCloseAria', '停止接管并关闭面板')}">×</button>
+      </div>
+      <div class="body">
+        <div class="readout">
+          <span class="num" data-el="num">0.000</span>
+          <span class="unit">s</span>
+        </div>
+        <input type="range" min="-10000" max="10000" step="100" value="0" data-el="slider"
+               aria-label="${T('uiSliderAria', '延迟秒数，负值表示声音提前')}">
+        <div class="steps">
+          <button data-step="-1000">−1s</button>
+          <button data-step="-100">−100</button>
+          <button data-step="0">${T('uiZero', '归零')}</button>
+          <button data-step="100">+100</button>
+          <button data-step="1000">+1s</button>
+        </div>
+        <div class="mode">
+          <span class="mode-tag" data-el="modeTag">${T('tagDelay', '延迟')}</span>
+          <button class="mode-btn" data-act="mode" data-el="modeBtn" hidden>${T('btnEnable', '启用双向')}</button>
+        </div>
+        <div class="route" data-el="route" hidden>
+          <span class="route-id" data-el="routeId"></span>
+          <span class="route-name" data-el="routeName"></span>
+          <span class="route-meta" data-el="routeMeta"></span>
+        </div>
+        <div class="meter" role="img" aria-label="${T('uiMeterAria', '音频输出电平')}"><div class="bar" data-el="bar"></div></div>
+        <div class="foot">
+          <span class="tip" data-el="tip">${T('uiTip', '滚轮 / ←→ 微调 100ms')}</span>
+          <button class="stop" data-act="stop">${T('uiStop', '停止')}</button>
+        </div>
+      </div>
+    </div>`
+};
+</script>
+<script>'use strict';
+
+/* ================================================================
+ * 页面内悬浮面板：DOM、样式、交互
+ *
+ * 这一层只管「看得见、点得动」：数值显示、滑块、滚轮、键盘、拖动、
+ * 全屏跟随、提示条。至于双向模式能不能开、开了走哪条链路，
+ * 全部交给 ADS.enh —— 这里只负责把它的结论画出来。
+ *
+ * 对外接口挂在 window.ADS.ui。
+ * ================================================================ */
+
+(function () {
+  const HOST_ID = 'audio-delay-sync-panel';
+  const MAX_MS = 10000;
+  const MIN_ENH_MS = -10000;   /* 只有双向模式才放行负半轴 */
+
+  if (window.ADS && window.ADS.ui) {
+    try { window.ADS.ui.reveal(); } catch (e) {}
+    return;
   }
 
-  function setCaption(ms) {
-    var step = $('step');
-    var cap = $('caption');
-    if (isRec) return;                    /* 录屏模式的文案由 recRender 控制 */
-    if (!state.running) {
-      step.textContent = '1';
-      cap.textContent = '先点开始，听听声音和口型差多少';
-      $('pill').textContent = ms > 0 ? '声音比口型晚 ' + (ms / 1000).toFixed(2) + ' 秒' : '已经对齐';
-      $('pill').classList.toggle('ok', ms === 0);
+  window.ADS = window.ADS || {};
+
+  const S = window.ADS_STYLE;
+
+  /* ---------------- 提示条 ----------------
+   * 与主面板完全独立：接管失败时主面板会因 getState 返回 inactive 而自我
+   * 销毁，提示必须活下来，否则用户点了图标什么都没发生，完全无从排查。
+   */
+  let toastEl = null;
+  let toastTimer = null;
+
+  function hideToast() {
+    if (toastTimer) { clearTimeout(toastTimer); toastTimer = null; }
+    if (toastEl) {
+      try { toastEl.remove(); } catch (e) {}
+      toastEl = null;
+    }
+  }
+
+  function showToast(text, kind) {
+    hideToast();
+
+    /* 上一次注入留下的提示可能还在页面上，先清掉再建 */
+    const stale = document.getElementById('audio-delay-sync-toast');
+    if (stale) { try { stale.remove(); } catch (e) {} }
+
+    const wrap = document.createElement('div');
+    wrap.id = 'audio-delay-sync-toast';
+    const sh = wrap.attachShadow({ mode: 'open' });
+    sh.innerHTML = S.toast(kind === 'ok');
+
+    sh.querySelector('.txt').textContent = text;
+    sh.querySelector('.x').addEventListener('click', hideToast);
+    document.documentElement.appendChild(wrap);
+    toastEl = wrap;
+
+    toastTimer = setTimeout(hideToast, 7000);
+  }
+
+  /* ---------------- 面板骨架 ---------------- */
+
+  const host = document.createElement('div');
+  host.id = HOST_ID;
+  /* 先藏着，等确认真的在接管再显形。
+     否则接管失败时面板会闪一下再消失，看着像 bug。 */
+  host.style.display = 'none';
+
+  const shadow = host.attachShadow({ mode: 'open' });
+  shadow.innerHTML = S.panel;
+
+  const panel = shadow.querySelector('.panel');
+  const head = shadow.querySelector('.head');
+  const slider = shadow.querySelector('[data-el="slider"]');
+  const num = shadow.querySelector('[data-el="num"]');
+  const bar = shadow.querySelector('[data-el="bar"]');
+  const tip = shadow.querySelector('[data-el="tip"]');
+  const modeTag = shadow.querySelector('[data-el="modeTag"]');
+  const modeBtn = shadow.querySelector('[data-el="modeBtn"]');
+  const routeBox = shadow.querySelector('[data-el="route"]');
+  const routeId = shadow.querySelector('[data-el="routeId"]');
+  const routeName = shadow.querySelector('[data-el="routeName"]');
+  const routeMeta = shadow.querySelector('[data-el="routeMeta"]');
+
+  /* ---------------- 状态 ---------------- */
+
+  let currentMs = 0;
+  let minMs = 0;               /* 双向模式时放开到 -10000 */
+  let enhanced = false;        /* enhance 层同步过来的副本，只用于取值钳制 */
+  let collapsed = false;
+  let dragging = false;
+  let dragDX = 0;
+  let dragDY = 0;
+
+  /* 外部挂进来的回调，避免这一层反过来依赖 enhance */
+  let onDelay = null;
+  let onStop = null;
+  let onMode = null;
+  /* 只要值变了就通知一次，不管发不发消息。
+     双向模式下延迟由增强层自己分配给 DelayNode（不走 onDelay），但它同样
+     需要「用户刚动过手」这个信号 —— 否则要等 syncTick 那 250ms 一拍才生效，
+     点「归零」到声音真的变 0 之间有一段听得出来的空档。 */
+  let onValue = null;
+
+  function clampMs(v) {
+    const n = Number(v);
+    if (!isFinite(n)) return 0;
+    return Math.min(MAX_MS, Math.max(minMs, Math.round(n)));
+  }
+
+  /* ---------------- 渲染 ---------------- */
+
+  function setValue(ms) {
+    currentMs = clampMs(ms);
+    slider.value = String(currentMs);
+    num.textContent = (currentMs / 1000).toFixed(3);
+    num.className = 'num' + (currentMs !== 0 ? ' pos' : '');
+    /* 滑块物理范围就是 MIN_ENH_MS..MAX_MS（见 ads-template.js 的 input），
+       0 点落在 50% */
+    const pct = (currentMs - MIN_ENH_MS) / (MAX_MS - MIN_ENH_MS) * 100;
+    slider.style.setProperty('--lo', Math.min(pct, 50).toFixed(2) + '%');
+    slider.style.setProperty('--hi', Math.max(pct, 50).toFixed(2) + '%');
+  }
+
+  function paintMeter(rms) {
+    const v = Number(rms) || 0;
+    const level = Math.min(1, Math.sqrt(v / 0.2));
+    bar.style.width = (level * 100).toFixed(1) + '%';
+  }
+
+  /** 让 enhance 层把「当前算什么模式」画到牌子上 */
+  function setModeTag(text, isEnh) {
+    modeTag.textContent = text;
+    modeTag.classList.toggle('enh', !!isEnh);
+  }
+
+  function setModeBtn(text, title, hidden) {
+    modeBtn.textContent = text || '';
+    modeBtn.title = title || '';
+    modeBtn.hidden = !!hidden;
+  }
+
+  /** 双向链路指示条。info 为 null 时整条隐藏。
+   *  on=false 是「将要走这条」的预告（虚线），on=true 是「正在走」（实线）。 */
+  function setRoute(info) {
+    if (!info) {
+      routeBox.hidden = true;
+      routeBox.removeAttribute('title');
       return;
     }
-    if (ms === 0) {
-      step.textContent = '✓';
-      cap.textContent = '对上了 —— 口型和声音在同一刻';
-      $('pill').textContent = '已对齐';
-      $('pill').classList.add('ok');
-    } else {
-      step.textContent = '2';
-      cap.textContent = '听着节拍拖动滑块，直到声音和口型对上';
-      $('pill').textContent = '声音比口型晚 ' + (ms / 1000).toFixed(2) + ' 秒';
-      $('pill').classList.remove('ok');
-    }
+    routeBox.hidden = false;
+    routeBox.classList.toggle('on', !!info.on);
+    routeBox.title = info.hint || '';
+    routeId.textContent = info.id || '';
+    routeName.textContent = info.name || '';
+    routeMeta.textContent = info.meta || '';
   }
 
-  /* 录屏模式下：让开始遮罩根据状态隐藏 */
-  function syncStart() {
-    if (isRec) { $('start').style.display = 'none'; return; }
-    $('start').style.display = state.running ? 'none' : 'grid';
+  /** 只改右侧那截动态数字（可提前多少秒），别整条重建 */
+  function setRouteMeta(text) {
+    if (routeBox.hidden) return;
+    if (routeMeta.textContent !== text) routeMeta.textContent = text || '';
   }
 
-  /* ---------------- 音频（点击开始后才创建） ---------------- */
-  function startAudio() {
-    if (state.running) return;
-    var Ctx = window.AudioContext || window.webkitAudioContext;
-    if (!Ctx) { $('caption').textContent = '这个浏览器不支持 Web Audio，换个浏览器试试'; return; }
-    var ctx = new Ctx();
-    var delayNode = ctx.createDelay(2);
-    delayNode.delayTime.value = state.delay / 1000;
-    var analyser = ctx.createAnalyser();
-    analyser.fftSize = 256;
-    delayNode.connect(analyser);
-    analyser.connect(ctx.destination);
-
-    state.ctx = ctx;
-    state.delayNode = delayNode;
-    state.analyser = analyser;
-    state.running = true;
-    state.next = ctx.currentTime + 0.15;
-    state.timer = setInterval(schedule, 60);
-    setCaption(state.delay);
-    syncStart();
-    rafLoop();
+  function setTip(text) {
+    tip.textContent = text || '';
   }
 
-  function schedule() {
-    var ctx = state.ctx;
-    while (state.next < ctx.currentTime + 0.3) {
-      clickAt(state.next);
-      state.next += BEAT;
-    }
+  /* ---------------- 下发（节流） ---------------- */
+
+  let pendingMs = null;
+  let sendTimer = null;
+  let flushFails = 0;
+
+  function queueDelay(ms) {
+    if (typeof onValue === 'function') onValue(ms);
+    /* 双向模式不走 tabCapture，延迟只作用于本地那条 audio 轨，不用通知 SW */
+    if (enhanced) return;
+    if (typeof onDelay === 'function') { onDelay(ms); return; }
+    pendingMs = ms;
+    if (sendTimer) return;
+    sendTimer = setTimeout(flush, 50);
   }
 
-  function clickAt(t) {
-    var ctx = state.ctx;
-    var osc = ctx.createOscillator();
-    var gain = ctx.createGain();
-    osc.type = 'sine';
-    osc.frequency.setValueAtTime(1050, t);
-    gain.gain.setValueAtTime(0.0001, t);
-    gain.gain.exponentialRampToValueAtTime(0.35, t + 0.004);
-    gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.11);
-    osc.connect(gain);
-    gain.connect(state.delayNode);
-    osc.start(t);
-    osc.stop(t + 0.14);
-    trash.push(osc);
-    if (trash.length > 20) trash.shift();
+  function flush() {
+    sendTimer = null;
+    const ms = pendingMs;
+    pendingMs = null;
+    if (ms == null) return;
+    chrome.runtime.sendMessage({ target: 'sw', type: 'setDelay', delayMs: ms })
+      .then(function (res) {
+        if (res && res.ok !== false) { flushFails = 0; return; }
+        retryFlush(ms);
+      })
+      .catch(function () { retryFlush(ms); });
   }
 
-  var buf = null;
-  function rafLoop() {
-    if (!state.running) return;
-    requestAnimationFrame(rafLoop);
-    var ctx = state.ctx;
-    var now = ctx.currentTime;
-    if (!buf) buf = new Uint8Array(state.analyser.frequencyBinCount);
-    state.analyser.getByteTimeDomainData(buf);
-    var sum = 0;
-    for (var i = 0; i < buf.length; i++) {
-      var v = (buf[i] - 128) / 128;
-      sum += v * v;
-    }
-    var rms = Math.sqrt(sum / buf.length);
-    paintMeter(Math.min(1, rms * 6), now);
-
-    var phase = ((now - state.delay / 1000) % BEAT + BEAT) % BEAT;
-    var env = Math.exp(-phase * 7);
-    $('labelB').classList.toggle('hot', env > 0.45);
-    $('labelA').classList.toggle('hot', (now % BEAT) < 0.14);
-  }
-
-  function paintMeter(level, time) {
-    var n = bars.length;
-    for (var i = 0; i < n; i++) {
-      var center = 1 - Math.abs(i - (n - 1) / 2) / ((n - 1) / 2);
-      var on = level * 1.25 > center * (0.55 + 0.45 * center);
-      bars[i].style.background = on ? '#45e08a' : '#2a333d';
-    }
-    $('meterFill').style.width = (12 + level * 82) + '%';
-    dotsPulse(time, level);
-  }
-
-  function dotsPulse(time, level) {
-    var audioPhase = ((time - state.delay / 1000) % BEAT + BEAT) % BEAT;
-    var visualPhase = (time % BEAT + BEAT) % BEAT;
-    dotA.forEach(function (d, i) {
-      d.classList.toggle('hot', i === 0 && visualPhase < 0.12);
-    });
-    dotB.forEach(function (d, i) {
-      d.classList.toggle('hot', i === 0 && audioPhase < 0.2 && level > 0.05);
-    });
-  }
-
-  /* ---------------- 录屏模式：按时间还原状态 ---------------- */
-  function delayAt(t) {
-    if (t < 1.6) return 600;
-    if (t < 3.8) return 600 - (t - 1.6) / 2.2 * 300;   /* 600 → 300 */
-    if (t < 4.4) return 300;
-    if (t < 6.2) return 300 - (t - 4.4) / 1.8 * 300;   /* 300 → 0 */
-    if (t < 7.4) return 0;
-    if (t < 8.2) return (t - 7.4) / 0.8 * 120;          /* 微调 0 → 120 */
-    if (t < 9.0) return 120 - (t - 8.2) / 0.8 * 120;    /* 微调 120 → 0 */
-    return 0;
-  }
-
-  function recRender(t) {
-    var ms = clamp(delayAt(t));
-    paintDelay(ms);
-
-    var dragging = (t >= 1.6 && t < 6.25) || (t >= 7.35 && t < 9.05);
-    $('cursor').style.display = dragging ? 'block' : 'none';
-    if (dragging) {
-      var sr = $('slider').getBoundingClientRect();
-      var x = sr.left + (ms / MAX_DELAY) * sr.width;
-      var y = sr.top + sr.height / 2;
-      $('cursor').style.left = x + 'px';
-      $('cursor').style.top = y + 'px';
-    }
-
-    var cap, step, pill;
-    if (t < 1.6) {
-      step = '1'; cap = '声音总比口型晚半拍，先拖一下滑块';
-      pill = '声音比口型晚 0.60 秒';
-    } else if (t < 4.4) {
-      step = '2'; cap = '拖动滑块，把声音一点点拉回来';
-      pill = '声音比口型晚 ' + (ms / 1000).toFixed(2) + ' 秒';
-    } else if (t < 6.2) {
-      step = '2'; cap = '继续往前拖，差得越来越少了';
-      pill = '声音比口型晚 ' + (ms / 1000).toFixed(2) + ' 秒';
-    } else if (t < 7.4) {
-      step = '✓'; cap = '对上了 —— 口型和声音在同一刻';
-      pill = '已对齐';
-    } else if (t < 9.0) {
-      step = '2'; cap = '随时可以微调，声音实时跟着走';
-      pill = '声音比口型晚 ' + (ms / 1000).toFixed(2) + ' 秒';
-    } else {
-      step = '✓'; cap = '对上了 —— 口型和声音在同一刻';
-      pill = '已对齐';
-    }
-    $('step').textContent = step;
-    $('caption').textContent = cap;
-    $('pill').textContent = pill;
-    $('pill').classList.toggle('ok', (t >= 6.2 && t < 7.4) || t >= 9.0);
-
-    /* 让菱形电平条和节拍在静态帧里也有动感 */
-    var env = Math.exp(-((t % BEAT) * 7));
-    paintMeterStatic(env);
-    var aph = (((t - ms / 1000) % BEAT) + BEAT) % BEAT;
-    $('labelA').classList.toggle('hot', (t % BEAT) < 0.16);
-    $('labelB').classList.toggle('hot', aph < 0.18);
-    dotA[0].classList.toggle('hot', (t % BEAT) < 0.16);
-    dotB[0].classList.toggle('hot', aph < 0.18);
-  }
-
-  function paintMeterStatic(env) {
-    var n = bars.length;
-    for (var i = 0; i < n; i++) {
-      var center = 1 - Math.abs(i - (n - 1) / 2) / ((n - 1) / 2);
-      var on = env > center * 0.55;
-      bars[i].style.background = on ? '#45e08a' : '#2a333d';
-    }
-    $('meterFill').style.width = (12 + env * 70) + '%';
+  /** 这一下没送到就再送一次。
+   *
+   *  单向下延迟只有这一条通道（content → SW → offscreen），中间任何一段
+   *  抖一下，面板已经写成 0、DelayNode 还停在旧值，用户听到的就是
+   *  「点了归零，声音还晚一截」。以前 .catch(noop) 把失败全吞了，
+   *  这种状态会一直挂到下一次拖动。
+   *
+   *  只在没有更新的值排队时才重试：用户拖着滑块连点时，
+   *  重试旧值会把面板和声音拉回去。 */
+  function retryFlush(ms) {
+    if (pendingMs != null) return;
+    if (flushFails >= 6) { flushFails = 0; return; }
+    flushFails++;
+    pendingMs = ms;
+    if (!sendTimer) sendTimer = setTimeout(flush, 200 * flushFails);
   }
 
   /* ---------------- 交互 ---------------- */
-  $('slider').addEventListener('input', function (e) {
-    paintDelay(clamp(+e.target.value));
+
+  slider.addEventListener('input', function () {
+    setValue(Number(slider.value));
+    queueDelay(currentMs);
   });
 
-  $('slider').addEventListener('wheel', function (e) {
-    e.preventDefault();
-    var step = e.shiftKey ? 1000 : 100;
-    paintDelay(clamp(state.delay + (e.deltaY < 0 ? step : -step)));
-  }, { passive: false });
-
-  document.addEventListener('keydown', function (e) {
-    if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
-    var step = e.shiftKey ? 1000 : 100;
-    paintDelay(clamp(state.delay + (e.key === 'ArrowRight' ? step : -step)));
-    e.preventDefault();
-  });
-
-  document.querySelectorAll('.presets button').forEach(function (b) {
-    b.addEventListener('click', function () {
-      var add = +b.dataset.add;
-      paintDelay(add === 0 ? 0 : clamp(state.delay + add));
+  shadow.querySelectorAll('[data-step]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      const d = Number(btn.getAttribute('data-step')) || 0;
+      setValue(d === 0 ? 0 : currentMs + d);
+      queueDelay(currentMs);
     });
   });
 
-  $('startBtn').addEventListener('click', startAudio);
+  shadow.addEventListener('click', function (e) {
+    const act = e.target && e.target.getAttribute && e.target.getAttribute('data-act');
+    if (!act) return;
 
-  $('stopBtn').addEventListener('click', function () {
-    if (isRec) return;
-    state.running = false;
-    if (state.timer) clearInterval(state.timer);
-    state.timer = null;
-    if (state.ctx) state.ctx.close();
-    state.ctx = null;
-    paintDelay(0);
-    $('start').style.display = 'grid';
-    $('caption').textContent = '已停止，声音回到页面';
-    $('pill').textContent = '未接管';
-    $('pill').classList.remove('ok');
+    if (act === 'collapse') {
+      collapsed = !collapsed;
+      panel.classList.toggle('collapsed', collapsed);
+      e.target.textContent = collapsed ? '+' : '−';
+      return;
+    }
+    if (act === 'stop' || act === 'close') {
+      if (typeof onStop === 'function') onStop();
+      else chrome.runtime.sendMessage({ target: 'sw', type: 'stop' }).catch(function () {});
+      destroy();
+      return;
+    }
+    if (act === 'mode') {
+      if (typeof onMode === 'function') onMode();
+    }
   });
 
-  if (isRec) {
-    recRender(recT);
-  } else {
-    paintDelay(state.delay);
-    syncStart();
+  /* ---------------- 键盘 ----------------
+   * 只在鼠标悬停于面板时响应：页面播放器自己就拿方向键快进快退，
+   * 全局监听会跟它打架，用户按一下两边都动。
+   */
+  let hovering = false;
+  host.addEventListener('pointerenter', function () { hovering = true; });
+  host.addEventListener('pointerleave', function () { hovering = false; });
+
+  document.addEventListener('keydown', onKeydown, true);
+
+  function onKeydown(e) {
+    if (!hovering) return;
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+
+    const tag = (e.target && e.target.tagName) || '';
+    if (/^(INPUT|TEXTAREA|SELECT)$/i.test(tag)) return;
+
+    const step = e.shiftKey ? 1000 : 100;
+    let next = null;
+
+    if (e.key === 'ArrowLeft') next = currentMs - step;
+    else if (e.key === 'ArrowRight') next = currentMs + step;
+    else if (e.key === 'Home') next = 0;
+    else return;
+
+    e.preventDefault();
+    e.stopPropagation();
+    setValue(next);
+    queueDelay(currentMs);
   }
+
+  /* ---------------- 滚轮 ----------------
+   * 触控板一次滑动会连发几十个小 delta，必须累积到「一格」再动，
+   * 否则数值会乱跳；同时要拦掉默认滚动，不然面板一动页面就跟着跑。
+   */
+  const WHEEL_NOTCH = 100;
+  let wheelAcc = 0;
+  let wheelShift = false;
+  let wheelTimer = null;
+
+  function flushWheel() {
+    wheelTimer = null;
+    const notches = Math.trunc(wheelAcc / WHEEL_NOTCH);
+    wheelAcc -= notches * WHEEL_NOTCH;
+    if (!notches) return;
+
+    /* 向上滚 = 数值变大（声音更晚），和滑块向右拖一致 */
+    const step = wheelShift ? 1000 : 100;
+    setValue(currentMs - notches * step);
+    queueDelay(currentMs);
+  }
+
+  host.addEventListener('wheel', function (e) {
+    let d = e.deltaY;
+    /* deltaMode: 0=像素 1=行 2=页，统一折算成像素 */
+    if (e.deltaMode === 1) d *= 16;
+    else if (e.deltaMode === 2) d *= 400;
+    if (!d) return;
+
+    e.preventDefault();
+    e.stopPropagation();
+
+    wheelShift = e.shiftKey;
+    wheelAcc += d;
+    if (!wheelTimer) wheelTimer = setTimeout(flushWheel, 40);
+  }, { passive: false });
+
+  /* 拖动：按住头部移动整个面板 */
+  head.addEventListener('pointerdown', function (e) {
+    if (e.target.getAttribute && e.target.getAttribute('data-act')) return;
+    dragging = true;
+    const r = host.getBoundingClientRect();
+    dragDX = e.clientX - r.left;
+    dragDY = e.clientY - r.top;
+    try { head.setPointerCapture(e.pointerId); } catch (err) {}
+    e.preventDefault();
+  });
+
+  head.addEventListener('pointermove', function (e) {
+    if (!dragging) return;
+    const x = Math.max(0, Math.min(window.innerWidth - host.offsetWidth, e.clientX - dragDX));
+    const y = Math.max(0, Math.min(window.innerHeight - 40, e.clientY - dragDY));
+    host.style.left = x + 'px';
+    host.style.top = y + 'px';
+    host.style.right = 'auto';
+    host.style.bottom = 'auto';
+  });
+
+  head.addEventListener('pointerup', function () { dragging = false; });
+
+  /* ---------------- 全屏跟随 ----------------
+   * 全屏时只有 fullscreenElement 子树可见，面板挂在 body 上会消失。
+   */
+  function syncFullscreen() {
+    const fs = document.fullscreenElement;
+    const target = (fs && fs.tagName !== 'VIDEO') ? fs : document.documentElement;
+    if (host.parentNode !== target) {
+      try { target.appendChild(host); } catch (e) {}
+    }
+  }
+
+  document.addEventListener('fullscreenchange', syncFullscreen, true);
+
+  /* ---------------- 生命周期 ---------------- */
+
+  function reveal() {
+    host.style.display = '';
+    if (collapsed) {
+      collapsed = false;
+      panel.classList.remove('collapsed');
+      shadow.querySelector('[data-act="collapse"]').textContent = '−';
+    }
+  }
+
+  function hide() {
+    host.style.display = 'none';
+  }
+
+  /** 面板此刻是否真的露在外面。
+   *  meter 是广播消息（SW 不带 frameId，同一标签页的每一层都会收到），
+   *  没有面板的 iframe 画了也没人看 —— 见 content.js 的 meter 分支。 */
+  function isVisible() {
+    return host.style.display !== 'none';
+  }
+
+  function destroy() {
+    document.removeEventListener('fullscreenchange', syncFullscreen, true);
+    /* 这两个监听器挂在 document 上，不摘掉的话「停止 → 再接管」每来一次
+       就多一份：旧实例的 currentMs 是陈旧的，方向键一动，几个实例各自
+       往后台发一个 setDelay，谁的先到谁生效，数值就变得不受控。 */
+    document.removeEventListener('keydown', onKeydown, true);
+    if (sendTimer) { clearTimeout(sendTimer); sendTimer = null; }
+    if (wheelTimer) { clearTimeout(wheelTimer); wheelTimer = null; }
+    if (toastTimer) { clearTimeout(toastTimer); toastTimer = null; }
+    try { host.remove(); } catch (e) {}
+    /* 只有「当前注册的还是自己」才清引用：重复注入时新实例已经把
+       window.ADS.ui 换成自己，旧实例的 destroy 不能把它抹掉。 */
+    if (window.ADS && window.ADS.ui === api) window.ADS.ui = null;
+    if (window.__adsPanel === api) window.__adsPanel = null;
+  }
+
+  const api = {
+    host: host,
+    shadow: shadow,
+
+    reveal: reveal,
+    hide: hide,
+    isVisible: isVisible,
+    destroy: destroy,
+
+    setValue: setValue,
+    getValue: function () { return currentMs; },
+    paintMeter: paintMeter,
+    showToast: showToast,
+
+    setModeTag: setModeTag,
+    setModeBtn: setModeBtn,
+    setRoute: setRoute,
+    setRouteMeta: setRouteMeta,
+    setTip: setTip,
+
+    /** 双向模式：放开负半轴，并告诉这一层「延迟不用再发给 SW」 */
+    setEnhanced: function (on) {
+      enhanced = !!on;
+      minMs = on ? MIN_ENH_MS : 0;
+      if (currentMs < minMs) setValue(minMs);
+    },
+
+    bind: function (handlers) {
+      if (!handlers) return;
+      if (handlers.delay) onDelay = handlers.delay;
+      if (handlers.stop) onStop = handlers.stop;
+      if (handlers.mode) onMode = handlers.mode;
+      if (handlers.value) onValue = handlers.value;
+    }
+  };
+
+  window.ADS.ui = api;
+  /* 老代码里通过 window.__adsPanel 拿到面板，保留这个别名 */
+  window.__adsPanel = api;
+
+  syncFullscreen();
+  document.documentElement.appendChild(host);
+  setValue(0);
+})();
+</script>
+
+<script>
+(function () {
+  var video = document.getElementById('v');
+  var stat = document.getElementById('stat');
+
+  var custom = new URLSearchParams(location.search).get('src');
+  if (custom) video.src = custom;
+
+  setInterval(function () {
+    var b = video.buffered;
+    var dur = isFinite(video.duration) ? video.duration.toFixed(1) : '?';
+    stat.textContent =
+      't=' + video.currentTime.toFixed(2) + 's / ' + dur + 's' +
+      '  缓冲=' + (b.length ? b.start(0).toFixed(1) + '~' + b.end(b.length - 1).toFixed(1) : '-');
+  }, 500);
+
+  document.getElementById('replay').addEventListener('click', function () {
+    video.currentTime = 0;
+    video.play().catch(function () {});
+  });
+
+  /* ---------- 和 offscreen.js 同一条链路：source → delay → analyser → 扬声器 ---------- */
+  var MAX_DELAY_SEC = 10.5;
+  var actx = null;
+  var delayNode = null;
+  var analyser = null;
+  var meterBuf = null;
+  var audioReady = false;
+  var ui = window.ADS && window.ADS.ui;
+  /* file:// 下 Chrome 会把本地视频当跨源，createMediaElementSource/captureStream
+     都会静音，所以本地双击只放原生声音，不开音频图。 */
+  var isFile = location.protocol === 'file:';
+  var fileWarn = document.getElementById('fileWarn');
+
+  function initAudio() {
+    if (audioReady) return true;
+    var AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) {
+      if (ui) ui.showToast('浏览器不支持 Web Audio，内置体验不可用', false);
+      return false;
+    }
+    try {
+      actx = new AC();
+      var src = actx.createMediaElementSource(video);
+      delayNode = actx.createDelay(MAX_DELAY_SEC);
+      delayNode.delayTime.value = 0;
+      analyser = actx.createAnalyser();
+      analyser.fftSize = 512;
+      meterBuf = new Uint8Array(analyser.fftSize);
+
+      src.connect(delayNode);
+      delayNode.connect(analyser);
+      analyser.connect(actx.destination);
+      audioReady = true;
+      return true;
+    } catch (e) {
+      console.warn('内置延迟初始化失败', e);
+      if (ui) ui.showToast('内置延迟初始化失败：' + e.message, false);
+      return false;
+    }
+  }
+
+  function applyDelay(ms) {
+    if (isFile) return;
+    if (!initAudio()) return;
+    if (actx.state === 'suspended') actx.resume();
+    var sec = Math.max(0, Math.min(10000, Number(ms) || 0)) / 1000;
+    delayNode.delayTime.setTargetAtTime(sec, actx.currentTime, 0.02);
+  }
+
+  /* 首次播放是用户手势，这时建音频图最稳 */
+  video.addEventListener('play', function () {
+    if (isFile) return;
+    if (initAudio() && actx.state === 'suspended') actx.resume();
+  });
+
+  /* ---------- 把扩展面板接到这条链路上 ---------- */
+  if (isFile) {
+    if (fileWarn) fileWarn.hidden = false;
+    if (ui) ui.hide();
+  } else if (ui) {
+    ui.bind({
+      delay: function (ms) { applyDelay(ms); },
+      stop: function () { applyDelay(0); }
+    });
+    ui.setModeBtn('', '', true);
+    ui.setTip('内置体验：拖到 0 恢复对齐');
+    /* 这页没有「接管会话」，停止/关闭会把面板拆掉，直接隐藏 */
+    ['close', 'stop'].forEach(function (act) {
+      var btn = ui.shadow.querySelector('[data-act="' + act + '"]');
+      if (btn) btn.remove();
+    });
+    ui.reveal();
+  }
+
+  /* 电平条：有声音就跟着动，和扩展里的 analyser 一致 */
+  setInterval(function () {
+    if (!audioReady || !ui || !ui.isVisible()) return;
+    analyser.getByteTimeDomainData(meterBuf);
+    var sum = 0;
+    for (var i = 0; i < meterBuf.length; i++) {
+      var x = (meterBuf[i] - 128) / 128;
+      sum += x * x;
+    }
+    ui.paintMeter(Math.sqrt(sum / meterBuf.length));
+  }, 250);
 })();
 </script>
 </body>

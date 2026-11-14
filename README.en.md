@@ -7,13 +7,13 @@
 A browser extension that adds an adjustable delay to **the current tab's audio**, so you can fix audio/video sync without touching the player. Set the amount, adjust it live, stop when you're done — all from a small panel in the corner of the page.
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg?logo=opensourceinitiative&logoColor=white)](LICENSE)
-[![Version](https://img.shields.io/badge/version-1.0.2-4dd9ff.svg?logo=git&logoColor=white)](https://github.com/cxknotjj/web-av-sync/releases)
+[![Version](https://img.shields.io/badge/version-1.1.0-4dd9ff.svg?logo=git&logoColor=white)](https://github.com/cxknotjj/web-av-sync/releases)
 [![Platform](https://img.shields.io/badge/platform-Chromium%20116%2B-4a5563.svg?logo=googlechrome&logoColor=white)](#install)
 [![Demo](https://img.shields.io/badge/demo-live-00b894.svg?logo=html5&logoColor=white)](https://deerfect.me/web-audio-sync/)
 [![Edge Add-ons](https://img.shields.io/badge/Edge%20Add--ons-install-0078d7.svg?logo=microsoftedge&logoColor=white)](https://microsoftedge.microsoft.com/addons/detail/dppjkonmajnmkgepepheieignphmbkfe)
 [![Stars](https://img.shields.io/github/stars/cxknotjj/web-av-sync?color=ffd75e&logo=github&logoColor=white)](https://github.com/cxknotjj/web-av-sync/stargazers)
 
-> **▶ Don't want to install anything?** [Open the live demo](https://deerfect.me/web-audio-sync/) and drag the slider to watch the sound drift back into place (demo UI is in Chinese). If the link won't open, download [`demo.html`](demo.html) and open it in your browser. The page runs entirely in your browser; the slider controls a real delay and no tab audio is captured.
+> **▶ Try it without installing anything** — [open the live page](https://deerfect.me/web-audio-sync/): the extension's own panel is built in, so you can drag the 52-second video's audio later or earlier and hit zero to restore sync. If the link won't open, download [`index.html`](index.html) and [`demo-1min.mp4`](demo-1min.mp4), serve the folder (e.g. `npx serve`) and open the local URL. Double-clicking the file only plays the picture — browsers block Web Audio processing of `file://` video.
 
 ![The player keeps working; a panel appears in the bottom-right corner](store/screenshot-4-live-delay.png)
 
@@ -210,6 +210,12 @@ Switching tabs stops the previous capture. The panel follows into fullscreen and
 ---
 
 ## 📝 Changelog
+
+### 1.1.0
+
+- Added a [live interactive demo](https://deerfect.me/web-audio-sync/) — no install needed: drag the slider and watch the sound get pulled back into place
+- Fixed route ② leaving the audio at the old position after a seek, with the panel stuck on "aligning, audio N s behind"
+- Reworked the README first screen, added badges and a demo entry
 
 <details>
 <summary><b>Expand: 1.0.1 / 1.0.2</b></summary>

@@ -214,17 +214,20 @@
    *  换链路③（自己重拉一路）。不碰用户的延迟设置，也不按住画面。 */
   function degradeCapture() {
     if (S.enhMode !== 'capture') return;
-    const keep = S.videoEl;
-    if (S.ui) S.ui.showToast(T('failDegradeSrc', '音频一直等不到数据，已改为重新拉一路（约多一倍流量）'));
-    L.fail(null, function () {
-      const R = window.ADS && window.ADS.E && window.ADS.E.route;
-      if (!keep || !R || !R.startViaSrc) return;
-      R.startViaSrc(keep);
-      /* exitEnhanced 会把 routeWhy 清空，所以降级原因要在切完之后重写，
-         否则面板上看不出「为什么从链路② 掉到了 ③」。 */
-      S.routeWhy = T('toastDegraded', '抓不到足够的切片，已自动降级');
-      publishState();
-    });
+    if (S.ui) {
+      S.ui.showToast(T('toastFallbackDelay',
+        '这个位置抓不到切片，已退回延迟模式（只能延后，不能再提前）'));
+    }
+    /* 兜底不再切链路③。三条理由：
+       1. ③ 要把同一路流再下一遍，约多一倍流量 —— 这个代价不该由一次
+          失败的跳转来替用户决定；
+       2. 页面是 MSE 时 currentSrc 是 blob:，③ 根本拉不到东西，
+          降过去也是没声音；
+       3. ③ 重建 <audio> 后还要重新等 canplay，中间那几秒照样静音，
+          等于多花一次失败。
+       退回单向延迟：tabCapture + DelayNode 还在，声音立刻回来，
+       代价只是失去「提前」这一档。 */
+    L.exit();
   }
 
   /** 链路② 的一拍：视频优先，音频异步追，追不上就静音。

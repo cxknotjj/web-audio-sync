@@ -270,6 +270,11 @@
     WATCH_GIVEUP_MS: 30000,   /* 没有 video 的框架等这么久就放弃 */
     WATCH_UNKNOWN_MS: 60000,  /* 有 video 但一直没地址，最多等这么久 */
     MAX_OFFSET_SHIFT_S: 180,  /* 重采样允许的最大偏移跳变（广告时长上限） */
+    MAX_TIMEBASE_SHIFT_S: 3600, /* 两条时间轴差多少还算合理（秒）。
+                                   播放器在很后面才启用双向时，切片 PTS 可能
+                                   从 0 重新计，差的就是播放位置本身
+                                   （实测 6 分钟处差 -460）。样本只在这个范围
+                                   内采信，再大按异常值丢掉。 */
     FEEDING_MS: 3000,         /* 多久内有新音频解出，就算「数据在来」 */
     SWAP_HINT_MS: 10000,      /* 面板上「播放源切换中」停留多久 */
     DOWNGRADE_MS: 2000        /* 静音多久才自动把提前量降到缓冲撑得住的位置 */
@@ -705,7 +710,12 @@
     if (Math.abs(da - dv) > 0.3) return;
 
     const sample = ae - ve;
-    if (!isFinite(sample) || Math.abs(sample) > 10) return;
+    /* 这里原来写死 10 秒，超过就当异常丢掉。但两条时间轴本来就可能差几百秒：
+       播放器在 6 分钟处才启用双向时，切片 PTS 从 0 重新计，音频轴 0 对应
+       视频轴 460，差的就是播放位置。把这类样本全丢掉，等于永远校正不过来 ——
+       声音一直停在开头，面板写着「音频慢 460s」，怎么拖都回不去。
+       上限放到 MAX_TIMEBASE_SHIFT_S（1 小时），仍然挡掉明显的错拍。 */
+    if (!isFinite(sample) || Math.abs(sample) > C.MAX_TIMEBASE_SHIFT_S) return;
 
     S.offSamples.push(sample);
     if (S.offSamples.length > 9) S.offSamples.shift();

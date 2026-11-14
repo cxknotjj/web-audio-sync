@@ -758,5 +758,73 @@ console.log('\n[21] 链路② 快进 6 分钟：音频位置必须立刻跟过�
   check('追赶窗口内允许硬跳', planCatch === 'jump', planCatch);
 }
 
+console.log('\n[22] 画面已经播到 6 分钟才启用双向：时间轴要能重估');
+{
+  const S = env.ADS.E.S;
+  const core = env.ADS.E.core;
+
+  function fakeEl(range) {
+    return {
+      buffered: {
+        length: 1,
+        start: function () { return range[0]; },
+        end: function () { return range[1]; }
+      }
+    };
+  }
+
+  function reset(a, v) {
+    S.enhMode = 'capture';
+    S.enhAudio = fakeEl(a);
+    S.videoEl = fakeEl(v);
+    S.offLastA = null;
+    S.offLastV = null;
+    S.offSamples = [];
+    S.aEndSeen = 0;
+    S.vEndSeen = 0;
+    S.aEndSeenAt = 0;
+    S.vEndSeenAt = 0;
+    S.vFreezeAt = 0;
+    S.adResampleUntil = 0;
+    S.cap.foreignAt = 0;
+    S.cap.lastForeignAt = 0;
+  }
+
+  /* 用户现场：页面在 460 秒处播放，抓到的切片 PTS 从 0 重新计。
+     音频缓冲在 0~5，视频缓冲在 460~465，两条轴差 460 秒。
+     老代码的 `|sample| > 10` 会把这类样本全丢掉，ptsOffset 永远是 1.6，
+     want 一直算在 461 秒处，而音频数据在 0 秒 —— 声音从头放，怎么都不跟。 */
+  reset([0, 5], [460, 465]);
+  S.ptsOffset = 1.6;
+  core.samplePtsOffset();          /* 第一拍只记基准 */
+  S.enhAudio = fakeEl([0, 8]);     /* 两边各推进 3 秒 */
+  S.videoEl = fakeEl([460, 468]);
+  core.samplePtsOffset();
+
+  check('时间轴差 460 秒也要采信（以前被 10 秒阈值挡掉）',
+    Math.abs(S.ptsOffset + 460) < 0.5, S.ptsOffset);
+
+  /* 正常站点：切片 PTS 与页面时间轴只差一个常量（实测 1.6s），
+     不能因为放宽上限就把它估歪。 */
+  reset([1.6, 6.6], [0, 5]);
+  S.ptsOffset = 0;
+  core.samplePtsOffset();
+  S.enhAudio = fakeEl([1.6, 9.6]);
+  S.videoEl = fakeEl([0, 8]);
+  core.samplePtsOffset();
+
+  check('正常站点仍然收敛到 1.6', Math.abs(S.ptsOffset - 1.6) < 0.3, S.ptsOffset);
+
+  /* 离谱的值仍然要挡掉（离谱到像是换了一条流） */
+  reset([0, 5], [9000, 9005]);
+  S.ptsOffset = 1.6;
+  core.samplePtsOffset();
+  S.enhAudio = fakeEl([0, 8]);
+  S.videoEl = fakeEl([9000, 9008]);
+  core.samplePtsOffset();
+
+  check('超过 1 小时的差值仍按异常丢掉', Math.abs(S.ptsOffset - 1.6) < 0.01, S.ptsOffset);
+}
+
 console.log(failures === 0 ? '\n全部通过' : '\n失败 ' + failures + ' 项');
 process.exit(failures === 0 ? 0 : 1);

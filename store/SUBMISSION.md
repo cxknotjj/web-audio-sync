@@ -16,7 +16,7 @@ Partner Center 各字段的**可复制文案**。除特别说明外，均为中�
 |---|---|---|---|
 | Name | `__MSG_extName__` → 音画不同步调节器 / Audio Delay Sync | ≤45 字符 | 中 8 / 英 16，通过 |
 | Description | `__MSG_extDesc__` → 见 `_locales/*/messages.json` | ≤132 字符 | 中 45 / 英 129，通过 |
-| Version | 1.0.2 | `x.y.z` | 通过 |
+| Version | 1.1.0 | `x.y.z` | 通过 |
 
 > 这两项现在写在 `_locales/zh_CN|en/messages.json` 里，manifest 只放占位符
 > （`default_locale` = `zh_CN`）。商店按浏览器界面语言显示对应文案：中文浏览器看到
@@ -524,7 +524,7 @@ WHAT THE EXTENSION READS AND STORES (least-privilege summary):
 - [ ] `manifest.json` 无 `update_url`
 - [ ] name / description 里没有 "Chrome"、"Firefox"、"Edge 浏览器"等字样（`tools/package.js` 会自动校验）
 - [ ] 四档图标齐全：16 / 32 / 48 / 128
-- [ ] `node tools/package.js` 通过，**上传的是 `dist/audio-delay-sync-1.0.2-store.zip`**
+- [ ] `node tools/package.js` 通过，**上传的是 `dist/audio-delay-sync-1.1.0-store.zip`**
 - [ ] **在真实 Edge 里完整跑通一次**：播放 → 点图标 → 接管 → 调延迟 → 停止
 - [ ] 截图 / 推广图 / logo 齐全，**且用的是 2026-10-23 重绘版**（标题为新名、含「模式」行）
 - [ ] 隐私政策已部署，URL 可访问

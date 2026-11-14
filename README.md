@@ -7,13 +7,13 @@
 浏览器扩展。给**当前标签页的声音**加一段可调的延迟，用来修音画不同步。调多少、什么时候停，都在页面右下角那块面板里完成。
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg?logo=opensourceinitiative&logoColor=white)](LICENSE)
-[![Version](https://img.shields.io/badge/version-1.0.2-4dd9ff.svg?logo=git&logoColor=white)](https://github.com/cxknotjj/web-av-sync/releases)
+[![Version](https://img.shields.io/badge/version-1.1.0-4dd9ff.svg?logo=git&logoColor=white)](https://github.com/cxknotjj/web-av-sync/releases)
 [![Platform](https://img.shields.io/badge/platform-Chromium%20116%2B-4a5563.svg?logo=googlechrome&logoColor=white)](#安装)
 [![Demo](https://img.shields.io/badge/demo-live-00b894.svg?logo=html5&logoColor=white)](https://deerfect.me/web-audio-sync/)
 [![Edge Add-ons](https://img.shields.io/badge/Edge%20Add--ons-install-0078d7.svg?logo=microsoftedge&logoColor=white)](https://microsoftedge.microsoft.com/addons/detail/dppjkonmajnmkgepepheieignphmbkfe)
 [![Stars](https://img.shields.io/github/stars/cxknotjj/web-av-sync?color=ffd75e&logo=github&logoColor=white)](https://github.com/cxknotjj/web-av-sync/stargazers)
 
-> **▶ 不想装扩展？** [先花 10 秒打开在线演示](https://deerfect.me/web-audio-sync/) —— 拖动滑块，看着"画面先到、声音后到"被一点点拉回来。打不开就下载 [`demo.html`](demo.html) 双击。演示页跑在浏览器本地，滑块控制真实延迟，不采集标签页音频。
+> **▶ 先不装，直接拖一拖** [打开在线体验页](https://deerfect.me/web-audio-sync/) —— 页面内置了扩展同款面板，52 秒视频的声音可以实时变晚/提前，点归零恢复。打不开就下载 [`index.html`](index.html) 和 [`demo-1min.mp4`](demo-1min.mp4)，在同一目录跑 `npx serve` 后访问本地地址（直接双击时浏览器不允许网页处理本地视频音频，只能看画面）。
 
 ![播放器照常工作，右下角多出一块面板](store/screenshot-4-live-delay.png)
 
@@ -210,6 +210,12 @@
 ---
 
 ## 📝 更新记录
+
+### 1.1.0
+
+- 新增[在线交互演示](https://deerfect.me/web-audio-sync/)，不装扩展也能试：拖滑块看「画面先到、声音后到」怎么被一点点拉回来
+- 修复链路② 快进或拖动进度条后音频停在原处、面板一直显示「对齐中，音频慢 N 秒」的问题
+- README 重排首屏，补上徽章和演示入口
 
 <details>
 <summary><b>展开：1.0.1 / 1.0.2</b></summary>

@@ -192,6 +192,41 @@
         aPaused: S.enhAudio ? S.enhAudio.paused : null,
         aRate: S.enhAudio ? +S.enhAudio.playbackRate.toFixed(3) : null,
         aBuf: S.enhAudio ? bufferedRanges() : null,
+        /* ---- 跳转后「音频追不上」的四个判据 ----
+           挨个看，能直接分出卡在哪一层：
+           aSeekEnd 不覆盖 want  → trySetAudioPos 根本设不过去（seekable 只跟缓冲）
+           msDur    是 NaN/很小   → ensureSeekRange 没把 duration 撑开
+           aBufEnd  远落后 vBufEnd → 切片没 append 到目标位置（PTS 轴变了）
+           aPos     还是旧值       → 位置压根没设，问题在调用之前 */
+        aSeekEnd: (function () {
+          try {
+            const s = S.enhAudio.seekable;
+            return s.length ? +s.end(s.length - 1).toFixed(1) : null;
+          } catch (e) { return null; }
+        })(),
+        aBufEnd: (function () {
+          try {
+            const b = S.enhAudio.buffered;
+            return b.length ? +b.end(b.length - 1).toFixed(1) : null;
+          } catch (e) { return null; }
+        })(),
+        vBufEnd: (function () {
+          try {
+            if (!S.videoEl) return null;
+            const b = S.videoEl.buffered;
+            return b.length ? +b.end(b.length - 1).toFixed(1) : null;
+          } catch (e) { return null; }
+        })(),
+        msState: S.enhMS ? S.enhMS.readyState : null,
+        msDur: (function () {
+          try {
+            const d = S.enhMS.duration;
+            return isFinite(d) ? +d.toFixed(1) : String(d);
+          } catch (e) { return null; }
+        })(),
+        appendFails: S.appendFails || 0,
+        queue: S.appendQueue ? S.appendQueue.length : null,
+        diag: String(document.documentElement.dataset.adsDiag || '').slice(-120),
         /* 链路② 的时间轴校准结果：音频 PTS 轴比页面时间轴多出的常量。
            判读「归零仍有固定延迟」时先看它有没有收敛到 1.5~1.6 这一档。 */
         ptsOffset: +S.ptsOffset.toFixed(3),

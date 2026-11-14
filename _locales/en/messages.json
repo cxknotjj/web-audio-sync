@@ -122,6 +122,9 @@
   "unitSeconds": {
     "message": "s"
   },
+  "toastFallbackDelay": {
+    "message": "Can't capture segments here — back to delay mode (later only, no earlier)"
+  },
   "failDegradeSrc": {
     "message": "Audio kept waiting for data — switched to fetching a second stream (~2× data)"
   },
