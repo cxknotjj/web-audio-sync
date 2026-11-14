@@ -1,17 +1,19 @@
-# Audio Delay Sync
+# 🎬 Audio Delay Sync
 
-[简体中文](README.md) · **English**
+[简体中文](README.md) · **🌐 English**
 
 **Don't change players, don't touch the timeline — just delay the sound on its way to the speakers.**
 
 A browser extension that adds an adjustable delay to **the current tab's audio**, so you can fix audio/video sync without touching the player. Set the amount, adjust it live, stop when you're done — all from a small panel in the corner of the page.
 
-[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-1.0.2-4dd9ff.svg)](https://github.com/cxknotjj/web-av-sync/releases)
-[![Platform](https://img.shields.io/badge/platform-Chromium%20116%2B-4a5563.svg)](#install)
-[![Stars](https://img.shields.io/github/stars/cxknotjj/web-av-sync?color=ffd75e)](https://github.com/cxknotjj/web-av-sync/stargazers)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg?logo=opensourceinitiative&logoColor=white)](LICENSE)
+[![Version](https://img.shields.io/badge/version-1.0.2-4dd9ff.svg?logo=git&logoColor=white)](https://github.com/cxknotjj/web-av-sync/releases)
+[![Platform](https://img.shields.io/badge/platform-Chromium%20116%2B-4a5563.svg?logo=googlechrome&logoColor=white)](#install)
+[![Demo](https://img.shields.io/badge/demo-live-00b894.svg?logo=html5&logoColor=white)](https://deerfect.me/web-audio-sync/)
+[![Edge Add-ons](https://img.shields.io/badge/Edge%20Add--ons-install-0078d7.svg?logo=microsoftedge&logoColor=white)](https://microsoftedge.microsoft.com/addons/detail/dppjkonmajnmkgepepheieignphmbkfe)
+[![Stars](https://img.shields.io/github/stars/cxknotjj/web-av-sync?color=ffd75e&logo=github&logoColor=white)](https://github.com/cxknotjj/web-av-sync/stargazers)
 
-> **Don't want to install anything?** [Open the interactive demo](https://htmlpreview.github.io/?https://github.com/cxknotjj/web-av-sync/blob/master/demo.html) and drag the slider to hear what "in sync" feels like (demo UI is in Chinese). If the link won't open, download [`demo.html`](demo.html) and open it in your browser. The clicks are synthesized by the browser; the slider controls a real delay and no tab audio is captured.
+> **▶ Don't want to install anything?** [Open the live demo](https://deerfect.me/web-audio-sync/) and drag the slider to watch the sound drift back into place (demo UI is in Chinese). If the link won't open, download [`demo.html`](demo.html) and open it in your browser. The page runs entirely in your browser; the slider controls a real delay and no tab audio is captured.
 
 ![The player keeps working; a panel appears in the bottom-right corner](store/screenshot-4-live-delay.png)
 
@@ -19,7 +21,7 @@ A browser extension that adds an adjustable delay to **the current tab's audio**
 
 ---
 
-## When you need it
+## 🎧 When you need it
 
 Even a small audio lag is annoying. Common causes:
 
@@ -34,15 +36,15 @@ Turn the number up until the lips match.
 
 ---
 
-## Install
+## 📦 Install
 
-**Option 1: Extension store (easiest)**
+**🛍️ Option 1: Extension store (easiest)**
 
 [Microsoft Edge Add-ons](https://microsoftedge.microsoft.com/addons/detail/dppjkonmajnmkgepepheieignphmbkfe) · requires Chromium **116+**
 
 The store build is missing route ② compared to the full build. On native HLS sites it falls back to route ③ — same behavior, it just downloads that stream twice.
 
-**Option 2: Load from source (full build / hacking)**
+**🧩 Option 2: Load from source (full build / hacking)**
 
 1. Clone or download this repository
 2. Open `edge://extensions` (or `chrome://extensions`)
@@ -56,7 +58,7 @@ The only difference between the two builds is route ②; see the [build comparis
 
 ---
 
-## Why I built it
+## 💡 Why I built it
 
 During online classes, the teacher's lips were always half a beat ahead of the sound. Switching players, scrubbing the timeline, reinstalling drivers — nothing helped, because the delay happens at the very last step before the audio leaves the computer.
 
@@ -66,7 +68,7 @@ If it helps you get back in sync, there's a small favor at the end of this page.
 
 ---
 
-## How to use
+## 🚀 How to use
 
 No technical knowledge required: **open a video → click the icon → drag the slider.**
 
@@ -80,7 +82,7 @@ To stop, click the icon again (or press the shortcut again); audio returns to th
 
 The shortcut can be changed at `edge://extensions/shortcuts`. You don't have to leave fullscreen to find the icon.
 
-### What's on the panel
+### 🔍 What's on the panel
 
 | Element | What it does |
 | --- | --- |
@@ -91,7 +93,7 @@ The shortcut can be changed at `edge://extensions/shortcuts`. You don't have to 
 | Status text | Current mode, and whether this page supports bidirectional. Bidirectional adds a route indicator |
 | Stop | Ends capture; audio returns to the page |
 
-### Three ways to adjust
+### 🎛️ Three ways to adjust
 
 - **Slider**: click and drag
 - **Wheel**: hover the panel and scroll — 100 ms per notch, 1 s with `Shift`. Scrolling up increases the delay. Only affects the panel, never the page
@@ -99,7 +101,7 @@ The shortcut can be changed at `edge://extensions/shortcuts`. You don't have to 
 
 ---
 
-## Advanced: make the audio early (bidirectional mode)
+## ⏪ Advanced: make the audio early (bidirectional mode)
 
 <details>
 <summary><b>Expand: how to enable bidirectional mode, and what it costs</b></summary>
@@ -118,7 +120,7 @@ Bidirectional mode takes a different path: it reads the audio the page has **alr
 
 ---
 
-## FAQ
+## ❓ FAQ
 
 <details>
 <summary><b>Expand: 15 common questions</b></summary>
@@ -189,7 +191,7 @@ Switching tabs stops the previous capture. The panel follows into fullscreen and
 
 ---
 
-## Known limitations
+## ⚠️ Known limitations
 
 <details>
 <summary><b>Expand: what it can't do</b></summary>
@@ -207,7 +209,7 @@ Switching tabs stops the previous capture. The panel follows into fullscreen and
 
 ---
 
-## Changelog
+## 📝 Changelog
 
 <details>
 <summary><b>Expand: 1.0.1 / 1.0.2</b></summary>
@@ -239,13 +241,13 @@ Switching tabs stops the previous capture. The panel follows into fullscreen and
 
 ---
 
-## Privacy
+## 🔒 Privacy
 
 No data is collected or uploaded. Everything ships inside the extension and works offline.
 
 Audio stays in your computer's memory only for the delay you set, then goes to the speakers — never written to disk, never transmitted.
 
-## License
+## 📄 License
 
 [MIT](LICENSE) © 2026 cxknotjj. Use it, modify it, sell it, ship it closed-source — just keep the copyright notice.
 
@@ -253,7 +255,7 @@ Bundles [mux.js](https://github.com/videojs/mux.js) 7.0.3 (Apache-2.0, © Bright
 
 ---
 
-## Under the hood
+## 🛠️ Under the hood
 
 <details>
 <summary><b>Expand: file map and development docs</b></summary>

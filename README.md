@@ -1,17 +1,19 @@
-# 音画不同步调节器
+# 🎬 音画不同步调节器
 
-**简体中文** · [English](README.en.md)
+**🌐 简体中文** · [English](README.en.md)
 
 **不换播放器、不碰进度条、只把送到扬声器的声音推迟一点。**
 
 浏览器扩展。给**当前标签页的声音**加一段可调的延迟，用来修音画不同步。调多少、什么时候停，都在页面右下角那块面板里完成。
 
-[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-1.0.2-4dd9ff.svg)](https://github.com/cxknotjj/web-av-sync/releases)
-[![Platform](https://img.shields.io/badge/platform-Chromium%20116%2B-4a5563.svg)](#安装)
-[![Stars](https://img.shields.io/github/stars/cxknotjj/web-av-sync?color=ffd75e)](https://github.com/cxknotjj/web-av-sync/stargazers)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg?logo=opensourceinitiative&logoColor=white)](LICENSE)
+[![Version](https://img.shields.io/badge/version-1.0.2-4dd9ff.svg?logo=git&logoColor=white)](https://github.com/cxknotjj/web-av-sync/releases)
+[![Platform](https://img.shields.io/badge/platform-Chromium%20116%2B-4a5563.svg?logo=googlechrome&logoColor=white)](#安装)
+[![Demo](https://img.shields.io/badge/demo-live-00b894.svg?logo=html5&logoColor=white)](https://deerfect.me/web-audio-sync/)
+[![Edge Add-ons](https://img.shields.io/badge/Edge%20Add--ons-install-0078d7.svg?logo=microsoftedge&logoColor=white)](https://microsoftedge.microsoft.com/addons/detail/dppjkonmajnmkgepepheieignphmbkfe)
+[![Stars](https://img.shields.io/github/stars/cxknotjj/web-av-sync?color=ffd75e&logo=github&logoColor=white)](https://github.com/cxknotjj/web-av-sync/stargazers)
 
-> **不想装扩展？** [先花 10 秒打开交互演示](https://htmlpreview.github.io/?https://github.com/cxknotjj/web-av-sync/blob/master/demo.html) —— 拖动滑块，听听"对上了"是什么感觉。打不开就下载 [`demo.html`](demo.html) 双击。演示页用的是浏览器合成的节拍声，滑块控制真实延迟，不采集标签页音频。
+> **▶ 不想装扩展？** [先花 10 秒打开在线演示](https://deerfect.me/web-audio-sync/) —— 拖动滑块，看着"画面先到、声音后到"被一点点拉回来。打不开就下载 [`demo.html`](demo.html) 双击。演示页跑在浏览器本地，滑块控制真实延迟，不采集标签页音频。
 
 ![播放器照常工作，右下角多出一块面板](store/screenshot-4-live-delay.png)
 
@@ -19,7 +21,7 @@
 
 ---
 
-## 什么时候用得上
+## 🎧 什么时候用得上
 
 声音比画面晚一点，看着就别扭。常见来源：
 
@@ -34,15 +36,15 @@
 
 ---
 
-## 安装
+## 📦 安装
 
-**方式一：应用商店（最省事）**
+**🛍️ 方式一：应用商店（最省事）**
 
 [Edge 加载项商店](https://microsoftedge.microsoft.com/addons/detail/dppjkonmajnmkgepepheieignphmbkfe) · 需要 Chromium 内核 **116 以上**
 
 商店里是**上架版**，比完整版少了链路②。遇到原生 HLS 站点会走链路③，功能一样，只是那条流会多下载一份。
 
-**方式二：从源码加载（完整版 / 想改代码）**
+**🧩 方式二：从源码加载（完整版 / 想改代码）**
 
 1. 下载本仓库（`git clone` 或下载 zip 解压）
 2. 打开 `edge://extensions`（Chrome 用 `chrome://extensions`）
@@ -56,7 +58,7 @@
 
 ---
 
-## 我为什么做它
+## 💡 我为什么做它
 
 上网课的时候，老师嘴型总比声音早半拍。换播放器、调进度条、重装驱动，全都没用——延迟发生在声音离开电脑之前的最后一步。
 
@@ -66,7 +68,7 @@
 
 ---
 
-## 怎么用
+## 🚀 怎么用
 
 不用懂任何技术名词：**打开视频 → 点图标 → 拖滑块**，三步。
 
@@ -80,7 +82,7 @@
 
 快捷键可以在浏览器的扩展管理页（`edge://extensions/shortcuts`）里改。全屏看片时不用退出来找图标。
 
-### 面板上都是什么
+### 🔍 面板上都是什么
 
 | 元素 | 作用 |
 | --- | --- |
@@ -91,7 +93,7 @@
 | 提示文字 | 当前模式，以及这一页能不能用双向。双向模式下还会多一条链路指示 |
 | 停止 | 结束接管，声音回到页面 |
 
-### 三种调节方式
+### 🎛️ 三种调节方式
 
 - **拖动滑块**：鼠标按住拖
 - **滚轮**：鼠标停在面板上滚动，一格 100 ms，按住 `Shift` 一格 1 秒。向上滚 = 数值变大（声音更晚）。只作用于面板，不会带着页面滚
@@ -99,7 +101,7 @@
 
 ---
 
-## 进阶：让声音提前（双向模式）
+## ⏪ 进阶：让声音提前（双向模式）
 
 <details>
 <summary><b>展开：双向模式怎么开、代价是什么</b></summary>
@@ -118,7 +120,7 @@
 
 ---
 
-## 常见问题
+## ❓ 常见问题
 
 <details>
 <summary><b>展开：15 个常见问题</b></summary>
@@ -189,7 +191,7 @@
 
 ---
 
-## 已知限制
+## ⚠️ 已知限制
 
 <details>
 <summary><b>展开：它做不到哪些事</b></summary>
@@ -207,7 +209,7 @@
 
 ---
 
-## 更新记录
+## 📝 更新记录
 
 <details>
 <summary><b>展开：1.0.1 / 1.0.2</b></summary>
@@ -239,13 +241,13 @@
 
 ---
 
-## 隐私
+## 🔒 隐私
 
 不收集、不上传任何数据。所有代码打包在扩展内，可离线使用。
 
 音频只在你电脑的内存里停留你设定的那段时间，然后送到扬声器——不落盘、不传输。
 
-## 许可证
+## 📄 许可证
 
 [MIT](LICENSE) © 2026 cxknotjj。随便用、改、商用、闭源分发都行，保留版权声明即可。
 
@@ -253,7 +255,7 @@
 
 ---
 
-## 想改代码 / 想搞清楚它怎么实现的
+## 🛠️ 想改代码 / 想搞清楚它怎么实现的
 
 <details>
 <summary><b>展开：文件分工与开发文档</b></summary>
