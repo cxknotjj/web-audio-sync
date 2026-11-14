@@ -960,7 +960,7 @@ node tools/test-modules.js   # 双向模式五个模块的装配顺序、重复�
 | 远程 | 地址 | 说明 |
 |---|---|---|
 | `origin` | `gitee.com/the-chicken-god-comes/AudioDelaySync` | 主仓，`master` 默认追踪它，裸 `git push` 推这里 |
-| `github` | `github.com/cxknotjj/web-av-sync` | GitHub 镜像，用于对外分发 |
+| `github` | `github.com/cxknotjj/web-audio-sync` | GitHub 镜像，用于对外分发 |
 
 两个一起推：
 

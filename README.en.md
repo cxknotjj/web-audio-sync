@@ -7,11 +7,11 @@
 A browser extension that adds an adjustable delay to **the current tab's audio**, so you can fix audio/video sync without touching the player. Set the amount, adjust it live, stop when you're done — all from a small panel in the corner of the page.
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg?logo=opensourceinitiative&logoColor=white)](LICENSE)
-[![Version](https://img.shields.io/badge/version-1.1.0-4dd9ff.svg?logo=git&logoColor=white)](https://github.com/cxknotjj/web-av-sync/releases)
+[![Version](https://img.shields.io/badge/version-1.1.0-4dd9ff.svg?logo=git&logoColor=white)](https://github.com/cxknotjj/web-audio-sync/releases)
 [![Platform](https://img.shields.io/badge/platform-Chromium%20116%2B-4a5563.svg?logo=googlechrome&logoColor=white)](#install)
 [![Demo](https://img.shields.io/badge/demo-live-00b894.svg?logo=html5&logoColor=white)](https://deerfect.me/web-audio-sync/)
 [![Edge Add-ons](https://img.shields.io/badge/Edge%20Add--ons-install-0078d7.svg?logo=microsoftedge&logoColor=white)](https://microsoftedge.microsoft.com/addons/detail/dppjkonmajnmkgepepheieignphmbkfe)
-[![Stars](https://img.shields.io/github/stars/cxknotjj/web-av-sync?color=ffd75e&logo=github&logoColor=white)](https://github.com/cxknotjj/web-av-sync/stargazers)
+[![Stars](https://img.shields.io/github/stars/cxknotjj/web-audio-sync?color=ffd75e&logo=github&logoColor=white)](https://github.com/cxknotjj/web-audio-sync/stargazers)
 
 > **▶ Try it without installing anything** — [open the live page](https://deerfect.me/web-audio-sync/): the extension's own panel is built in, so you can drag the 52-second video's audio later or earlier and hit zero to restore sync. If the link won't open, download [`index.html`](index.html) and [`demo-1min.mp4`](demo-1min.mp4), serve the folder (e.g. `npx serve`) and open the local URL. Double-clicking the file only plays the picture — browsers block Web Audio processing of `file://` video.
 
@@ -52,7 +52,7 @@ The store build is missing route ② compared to the full build. On native HLS s
 4. Click **Load unpacked** and select the repository folder
 5. Pin the extension to the toolbar
 
-The full-build zip is on the [Releases](https://github.com/cxknotjj/web-av-sync/releases) page.
+The full-build zip is on the [Releases](https://github.com/cxknotjj/web-audio-sync/releases) page.
 
 The only difference between the two builds is route ②; see the [build comparison in USAGE.md](USAGE.md#7-两个构建版本). **Don't install both in the same browser** — they have different extension IDs and will be treated as two separate extensions.
 
@@ -289,4 +289,4 @@ UI copy ships in Chinese and English, following the browser language. To add a t
 
 **If it got your lips and sound back together, a Star ⭐ helps more people find it.**
 
-[![Star this repo](https://img.shields.io/badge/Star_this_repo-ffd75e?style=for-the-badge&logo=github)](https://github.com/cxknotjj/web-av-sync/stargazers)
+[![Star this repo](https://img.shields.io/badge/Star_this_repo-ffd75e?style=for-the-badge&logo=github)](https://github.com/cxknotjj/web-audio-sync/stargazers)

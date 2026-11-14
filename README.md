@@ -7,11 +7,11 @@
 浏览器扩展。给**当前标签页的声音**加一段可调的延迟，用来修音画不同步。调多少、什么时候停，都在页面右下角那块面板里完成。
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg?logo=opensourceinitiative&logoColor=white)](LICENSE)
-[![Version](https://img.shields.io/badge/version-1.1.0-4dd9ff.svg?logo=git&logoColor=white)](https://github.com/cxknotjj/web-av-sync/releases)
+[![Version](https://img.shields.io/badge/version-1.1.0-4dd9ff.svg?logo=git&logoColor=white)](https://github.com/cxknotjj/web-audio-sync/releases)
 [![Platform](https://img.shields.io/badge/platform-Chromium%20116%2B-4a5563.svg?logo=googlechrome&logoColor=white)](#安装)
 [![Demo](https://img.shields.io/badge/demo-live-00b894.svg?logo=html5&logoColor=white)](https://deerfect.me/web-audio-sync/)
 [![Edge Add-ons](https://img.shields.io/badge/Edge%20Add--ons-install-0078d7.svg?logo=microsoftedge&logoColor=white)](https://microsoftedge.microsoft.com/addons/detail/dppjkonmajnmkgepepheieignphmbkfe)
-[![Stars](https://img.shields.io/github/stars/cxknotjj/web-av-sync?color=ffd75e&logo=github&logoColor=white)](https://github.com/cxknotjj/web-av-sync/stargazers)
+[![Stars](https://img.shields.io/github/stars/cxknotjj/web-audio-sync?color=ffd75e&logo=github&logoColor=white)](https://github.com/cxknotjj/web-audio-sync/stargazers)
 
 > **▶ 先不装，直接拖一拖** [打开在线体验页](https://deerfect.me/web-audio-sync/) —— 页面内置了扩展同款面板，52 秒视频的声音可以实时变晚/提前，点归零恢复。打不开就下载 [`index.html`](index.html) 和 [`demo-1min.mp4`](demo-1min.mp4)，在同一目录跑 `npx serve` 后访问本地地址（直接双击时浏览器不允许网页处理本地视频音频，只能看画面）。
 
@@ -52,7 +52,7 @@
 4. 点**加载已解压的扩展程序**，选中仓库目录
 5. 把扩展图标固定到工具栏
 
-完整版的 zip 在 [Releases](https://github.com/cxknotjj/web-av-sync/releases) 页面。
+完整版的 zip 在 [Releases](https://github.com/cxknotjj/web-audio-sync/releases) 页面。
 
 两个版本只差链路②，详见 [USAGE.md 的构建版本对照](USAGE.md#7-两个构建版本)。**不要同时装在同一个浏览器里**，扩展 ID 不同，会被当成两个扩展。
 
@@ -289,4 +289,4 @@
 
 **如果它帮你把口型对上了，点个 Star ⭐ 让更多被音画不同步折磨的人找到它。**
 
-[![Star this repo](https://img.shields.io/badge/Star_this_repo-ffd75e?style=for-the-badge&logo=github)](https://github.com/cxknotjj/web-av-sync/stargazers)
+[![Star this repo](https://img.shields.io/badge/Star_this_repo-ffd75e?style=for-the-badge&logo=github)](https://github.com/cxknotjj/web-audio-sync/stargazers)
