@@ -677,5 +677,86 @@ console.log('\n[20] 模板重复注入：顶层声明不会互相打架');
     box.ADS_STYLE ? Object.keys(box.ADS_STYLE).join(',') : 'undefined');
 }
 
+console.log('\n[21] 链路② 快进 6 分钟：音频位置必须立刻跟过去');
+{
+  const S = env.ADS.E.S;
+  const core = env.ADS.E.core;
+  const sync = env.ADS.E.sync;
+
+  /* MSE 的真实形状：duration 撑开之后 seekable 覆盖目标点，
+     但 buffered 里还一片数据都没有。 */
+  function fakeAudio(ct, buffered, seekable) {
+    const b = buffered || [];
+    const s = seekable || [];
+    return {
+      currentTime: ct,
+      playbackRate: 1,
+      paused: true,
+      readyState: 0,
+      buffered: {
+        length: b.length,
+        start: function (i) { return b[i][0]; },
+        end: function (i) { return b[i][1]; }
+      },
+      seekable: {
+        length: s.length,
+        start: function (i) { return s[i][0]; },
+        end: function (i) { return s[i][1]; }
+      },
+      pause: function () {},
+      play: function () { return Promise.resolve(); }
+    };
+  }
+
+  S.enhanced = true;
+  S.enhMode = 'capture';
+  S.ptsOffset = 1.6;
+  S.muxer = {};
+  S.videoEl = {
+    currentTime: 406, paused: false, seeking: true,
+    src: 'blob:x', currentSrc: 'blob:x'
+  };
+  S.enhAudio = fakeAudio(0, [], [[0, 1000]]);
+  S.enhMS = { readyState: 'open', duration: 100 };
+  S.enhBuf = null;
+  S.lastPosJump = 0;
+
+  const want = core.wantTime();     /* 406 + ptsOffset 1.6 + 回路补偿 0.07 */
+
+  /* 用户现场：拖到 6 分钟处，新位置一片切片都没 append。
+     老代码 seekAudioTo 因为 bufferedHas 为假直接返回，位置一动不动；
+     captureTick 的 decideAim 又判「落后太多别硬跳」，于是永远停在 0 ——
+     面板一直显示「对齐中，音频慢 406.4s」。 */
+  sync.onVideoSeek();
+
+  check('seek 到未缓冲区间：位置立刻摆到目标点',
+    Math.abs(S.enhAudio.currentTime - want) < 0.01, S.enhAudio.currentTime);
+
+  /* seek 事件那一拍万一没摆成功（seekable 还没撑开），syncTick 必须接手。
+     把位置按回 0，模拟那一拍失败，再看下一拍能不能自己补上。 */
+  S.enhAudio.currentTime = 0;
+  S.seekAt = Date.now() - 1000;     /* 1 秒前刚跳完，仍在追赶窗口里 */
+  S.lastPosJump = 0;
+  S.silentSince = 0;
+  S.audioSilent = false;
+  sync.syncTick();
+  check('seek 后下一拍补摆位置（decideAim 的追赶窗口）',
+    Math.abs(S.enhAudio.currentTime - want) < 0.5, S.enhAudio.currentTime);
+
+  /* 窗口之外的稳态：落后太多且目标点没数据时，仍然不硬跳 ——
+     这个取舍没有被改坏（跳过去只是把落后换成静音）。 */
+  const plan = core.decideAim({
+    needSeek: true, ahead: true, catchUp: false,
+    lead: -400, hasBuffered: false, currentLead: -999
+  });
+  check('稳态下仍然不硬跳', plan === 'none', plan);
+
+  const planCatch = core.decideAim({
+    needSeek: true, ahead: true, catchUp: true,
+    lead: -400, hasBuffered: false, currentLead: -999
+  });
+  check('追赶窗口内允许硬跳', planCatch === 'jump', planCatch);
+}
+
 console.log(failures === 0 ? '\n全部通过' : '\n失败 ' + failures + ' 项');
 process.exit(failures === 0 ? 0 : 1);

@@ -80,10 +80,21 @@
 
     const want = wantTime();
     try { S.enhAudio.playbackRate = 1; } catch (e) {}
-    /* 位置先摆到正确的地方。没缓冲到时 seekAudioTo 会跳过 —— 硬 seek 要么
-       被钳回缓冲末尾，要么卡在 seekable 与 buffered 之间的空洞里、从此不再
-       接受校正。数据 append 进来后下一拍会自动纠正。 */
-    seekAudioTo(want);
+    /* 位置先摆到正确的地方。seekAudioTo 只认「目标点已经有缓冲」——
+       跳到还没下载的区域时它必然返回 false，这一拍就白过了。 */
+    if (!seekAudioTo(want)) {
+      if (S.enhMode === 'capture') {
+        /* 链路② 的切片是后到的，位置必须先过去：设 currentTime 让媒体元素
+           进入 seeking，切片 append 进来就从这里续播。
+           少了这一步，captureTick 里的 decideAim 会把它判成「落后太多，
+           别硬跳」（lead < -5），一拍一拍地空转 —— 实测快进 6 分钟后
+           音频停在原处，面板一直显示「对齐中，音频慢 406.4s」。 */
+        trySetAudioPos(want);
+      } else {
+        /* 链路① / ③ 的缓冲是自己按顺序攒的，贴到缓冲末尾就行。 */
+        catchUpToBuffered(want);
+      }
+    }
 
     /* 等待基准整体换成新位置：stallSince / stallTail 还是旧位置的，
        继续用会把「刚跳过来的等待」算成「已经等了很久」，几秒后误降档。 */
@@ -505,12 +516,19 @@
     const cur = S.enhAudio.currentTime;
     const needSeek = Math.abs(cur - aim) > C.DRIFT_SEEK;
     const catchUp = S.cap.catchUpUntil && Date.now() < S.cap.catchUpUntil;
+    /* 跳转后的追赶窗口。decideAim 平时对「落后超过 5 秒、目标点又没数据」
+       返回 none —— 跳过去只是把落后换成静音，这个取舍在稳态下是对的。
+       但跳转是用户主动要求的位移：切片按新位置 append，音频却留在几分钟
+       之前，不硬跳就永远不会自愈。seek 事件那一拍如果没摆成功（seekable
+       还没撑开），这里是唯一的补救点，所以窗口内复用 catchUp 的「必须跳」
+       语义。 */
+    const seekCatchUp = !!S.seekAt && Date.now() - S.seekAt < C.SEEK_CATCHUP_MS;
 
     if (needSeek && !seekAudioTo(aim)) {
       const aimPlan = decideAim({
         needSeek: needSeek,
         ahead: aim > cur,
-        catchUp: catchUp,
+        catchUp: catchUp || seekCatchUp,
         lead: bufferedLead(aim),
         hasBuffered: S.enhAudio.buffered.length > 0,
         currentLead: bufferedLead(cur)
