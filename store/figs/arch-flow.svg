@@ -1,0 +1,156 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1240" height="740" viewBox="0 0 1240 740">
+  <defs>
+    <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#7A8290"/>
+    </marker>
+    <marker id="ar2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#9AA1AC"/>
+    </marker>
+    <style>
+      text { font-family: "Microsoft YaHei", "PingFang SC", sans-serif; }
+      .h { font-size: 15px; font-weight: 700; fill: #1f2328; }
+      .h2 { font-size: 14px; font-weight: 700; fill: #1f2328; }
+      .s { font-size: 10.5px; fill: #667085; }
+      .c { font-size: 12px; fill: #1f2328; }
+      .m { font-size: 11px; fill: #1f2328; }
+      .pill { font-size: 11px; fill: #3d4450; }
+      .note { font-size: 10.5px; fill: #667085; }
+      .code { font-size: 11px; fill: #1f2328; font-family: Consolas, "Microsoft YaHei", monospace; }
+    </style>
+  </defs>
+
+  <rect width="1240" height="740" fill="#ffffff"/>
+
+  <!-- ============ CDN ============ -->
+  <rect x="48" y="48" width="200" height="120" rx="12" fill="#F6F7F9" stroke="#C4C9D2" stroke-width="1.5"/>
+  <text class="h2" x="68" y="84">CDN</text>
+  <text class="code" x="68" y="108">.m3u8 / .ts</text>
+  <text class="note" x="68" y="134">播放器按需请求切片</text>
+
+  <!-- ============ MAIN world ============ -->
+  <rect x="320" y="48" width="400" height="200" rx="12" fill="#FFF7ED" stroke="#E9A23B" stroke-width="1.5"/>
+  <text class="h" x="344" y="82">页面 · MAIN world</text>
+  <text class="s" x="344" y="104">页面脚本与扩展共享同一个 JS 上下文</text>
+
+  <rect x="344" y="116" width="172" height="34" rx="8" fill="#ffffff" stroke="#EBC48C"/>
+  <text class="c" x="358" y="138">video / hls.js 播放器</text>
+  <rect x="532" y="116" width="172" height="34" rx="8" fill="#ffffff" stroke="#EBC48C"/>
+  <text class="c" x="546" y="138">MediaSource · SourceBuffer</text>
+
+  <rect x="344" y="158" width="172" height="34" rx="8" fill="#ffffff" stroke="#EBC48C"/>
+  <text class="c" x="358" y="180">inject-main.js（hook）</text>
+  <rect x="532" y="158" width="172" height="34" rx="8" fill="#ffffff" stroke="#EBC48C"/>
+  <text class="c" x="546" y="180">inject-buffer.js（放宽）</text>
+
+  <text class="note" x="344" y="216">hook 必须 document_start：init segment 只 append 一次</text>
+  <text class="note" x="344" y="234">isolated world 改 prototype，只影响扩展自己</text>
+
+  <!-- ============ Isolated world ============ -->
+  <rect x="320" y="300" width="400" height="250" rx="12" fill="#EEF4FF" stroke="#5B84D6" stroke-width="1.5"/>
+  <text class="h" x="344" y="334">页面 · Isolated world</text>
+  <text class="s" x="344" y="356">content script：扩展的全部业务逻辑</text>
+
+  <rect x="344" y="370" width="172" height="34" rx="8" fill="#ffffff" stroke="#A9C2EA"/>
+  <text class="c" x="358" y="392">core 状态 · 时间轴 · 决策</text>
+  <rect x="532" y="370" width="172" height="34" rx="8" fill="#ffffff" stroke="#A9C2EA"/>
+  <text class="c" x="546" y="392">route 三链路选择</text>
+
+  <rect x="344" y="412" width="172" height="34" rx="8" fill="#ffffff" stroke="#A9C2EA"/>
+  <text class="c" x="358" y="434">sync 250ms 对齐循环</text>
+  <rect x="532" y="412" width="172" height="34" rx="8" fill="#ffffff" stroke="#A9C2EA"/>
+  <text class="c" x="546" y="434">panel 悬浮面板</text>
+
+  <rect x="344" y="456" width="360" height="46" rx="8" fill="#DCE8FB" stroke="#5B84D6"/>
+  <text class="c" x="358" y="476">&lt;audio&gt; + MediaSource（自建）</text>
+  <text class="note" x="358" y="492">独立时钟：currentTime 可以设在画面之前</text>
+
+  <text class="note" x="344" y="530">读 video.currentTime → 算 want → 写 &lt;audio&gt;.currentTime</text>
+
+  <!-- ============ Service Worker ============ -->
+  <rect x="800" y="48" width="380" height="200" rx="12" fill="#F4F1FF" stroke="#8B7BE8" stroke-width="1.5"/>
+  <text class="h" x="824" y="82">Service Worker</text>
+  <text class="s" x="824" y="104">background：无 DOM，只做编排与受限 API</text>
+
+  <rect x="824" y="116" width="166" height="34" rx="8" fill="#ffffff" stroke="#C3B8F2"/>
+  <text class="c" x="838" y="138">chrome.tabCapture</text>
+  <rect x="998" y="116" width="166" height="34" rx="8" fill="#ffffff" stroke="#C3B8F2"/>
+  <text class="c" x="1012" y="138">chrome.debugger</text>
+
+  <rect x="824" y="158" width="166" height="34" rx="8" fill="#ffffff" stroke="#C3B8F2"/>
+  <text class="c" x="838" y="180">权限与脚本注册</text>
+  <rect x="998" y="158" width="166" height="34" rx="8" fill="#ffffff" stroke="#C3B8F2"/>
+  <text class="c" x="1012" y="180">mux.js 按需注入</text>
+
+  <text class="note" x="824" y="216">被浏览器回收后，状态从 storage.session 恢复</text>
+  <text class="note" x="824" y="234">手势只在这里有效：action.onClicked</text>
+
+  <!-- ============ Offscreen ============ -->
+  <rect x="800" y="300" width="380" height="250" rx="12" fill="#EAF7F1" stroke="#3FA97C" stroke-width="1.5"/>
+  <text class="h" x="824" y="334">Offscreen document</text>
+  <text class="s" x="824" y="356">MV3 的 SW 没有 DOM，音频图只能放这里</text>
+
+  <rect x="812" y="376" width="92" height="46" rx="8" fill="#ffffff" stroke="#9AD3BC"/>
+  <text class="c" x="826" y="404">抓取流</text>
+  <rect x="924" y="376" width="108" height="46" rx="8" fill="#D5F0E4" stroke="#3FA97C"/>
+  <text class="m" x="936" y="398">DelayNode</text>
+  <text class="m" x="936" y="414">0 ~ 10s</text>
+  <rect x="1052" y="376" width="100" height="46" rx="8" fill="#ffffff" stroke="#9AD3BC"/>
+  <text class="c" x="1066" y="404">输出</text>
+
+  <line x1="906" y1="399" x2="920" y2="399" stroke="#7A8290" stroke-width="1.5" marker-end="url(#ar)"/>
+  <line x1="1034" y1="399" x2="1048" y2="399" stroke="#7A8290" stroke-width="1.5" marker-end="url(#ar)"/>
+
+  <line x1="978" y1="424" x2="978" y2="444" stroke="#9AA1AC" stroke-width="1.2" stroke-dasharray="4 3" marker-end="url(#ar2)"/>
+  <rect x="924" y="448" width="108" height="32" rx="8" fill="#ffffff" stroke="#9AD3BC"/>
+  <text class="m" x="940" y="468">analyser 电平</text>
+
+  <text class="note" x="824" y="506">改延迟用 60ms ramp，直接赋值会咔哒</text>
+  <text class="note" x="824" y="524">接管期间页面被强制静音，这是唯一出声口</text>
+
+  <!-- ============ 输出 ============ -->
+  <rect x="1010" y="620" width="160" height="56" rx="12" fill="#F6F7F9" stroke="#C4C9D2" stroke-width="1.5"/>
+  <text class="c" x="1042" y="654">耳机 / 扬声器</text>
+
+  <!-- ============ 链路汇总 ============ -->
+  <rect x="48" y="560" width="584" height="124" rx="12" fill="#FAFAFA" stroke="#E2E4E8"/>
+  <text class="m" x="72" y="590" font-weight="700">三条链路，成本从低到高</text>
+  <text class="note" x="72" y="616">① MSE 复用　　零流量　　页面用 hls.js / shaka</text>
+  <text class="note" x="72" y="640">② 调试抓片　　零流量　　原生 HLS，顶部有调试提示条</text>
+  <text class="note" x="72" y="664">③ 直拉一路　　2× 流量　前两条都不行时兜底</text>
+
+  <!-- ============ 箭头 ============ -->
+  <!-- 请求 -->
+  <line x1="252" y1="108" x2="312" y2="108" stroke="#7A8290" stroke-width="1.6" marker-end="url(#ar)"/>
+  <rect x="256" y="80" width="52" height="20" rx="10" fill="#ffffff" stroke="#D5D8DE"/>
+  <text class="pill" x="268" y="94">请求</text>
+
+  <!-- 片段 -->
+  <line x1="500" y1="252" x2="500" y2="296" stroke="#7A8290" stroke-width="1.6" marker-end="url(#ar)"/>
+  <rect x="510" y="264" width="52" height="20" rx="10" fill="#ffffff" stroke="#D5D8DE"/>
+  <text class="pill" x="522" y="278">片段</text>
+
+  <!-- 字节 -->
+  <polyline points="800,190 770,190 770,330 722,330" fill="none" stroke="#7A8290" stroke-width="1.6" marker-end="url(#ar)"/>
+  <rect x="744" y="250" width="52" height="20" rx="10" fill="#ffffff" stroke="#D5D8DE"/>
+  <text class="pill" x="756" y="264">字节</text>
+
+  <!-- 抓流 -->
+  <line x1="724" y1="399" x2="806" y2="399" stroke="#7A8290" stroke-width="1.6" marker-end="url(#ar)"/>
+  <rect x="738" y="374" width="52" height="20" rx="10" fill="#ffffff" stroke="#D5D8DE"/>
+  <text class="pill" x="750" y="388">抓流</text>
+
+  <!-- 直拉 -->
+  <polyline points="200,172 200,478 316,478" fill="none" stroke="#9AA1AC" stroke-width="1.4" stroke-dasharray="5 4" marker-end="url(#ar2)"/>
+  <rect x="214" y="300" width="52" height="20" rx="10" fill="#ffffff" stroke="#D5D8DE"/>
+  <text class="pill" x="226" y="314">直拉</text>
+
+  <!-- 控制 -->
+  <line x1="980" y1="252" x2="980" y2="296" stroke="#9AA1AC" stroke-width="1.4" stroke-dasharray="5 4" marker-end="url(#ar2)"/>
+  <rect x="990" y="264" width="52" height="20" rx="10" fill="#ffffff" stroke="#D5D8DE"/>
+  <text class="pill" x="1002" y="278">控制</text>
+
+  <!-- 输出 -->
+  <line x1="1090" y1="554" x2="1090" y2="616" stroke="#7A8290" stroke-width="1.6" marker-end="url(#ar)"/>
+  <rect x="1100" y="574" width="52" height="20" rx="10" fill="#ffffff" stroke="#D5D8DE"/>
+  <text class="pill" x="1112" y="588">输出</text>
+</svg>
