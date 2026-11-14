@@ -283,22 +283,19 @@
     }
 
     /* DASH：<audio> 喂不进 .mpd 清单，点下去只会白等 15 秒再失败，
-       所以按钮直接说明不支持，别让用户去授权、去刷新折腾一圈 */
+       所以按钮直接说明不支持，别让用户去补装脚本、去刷新折腾一圈 */
     if (kind === 'dash') {
       S.ui.setModeBtn(T('btnNoBi', '此页不支持双向'),
         T('tipNoBiDash', 'DASH（.mpd）清单由页面自己的播放器解码，音频片段没有可复用的通道。延迟模式仍可用'), false);
       return;
     }
 
+    /* 站点访问权限随安装一次性授予，不再有「授权」这一步。这里缺的只是
+       增强脚本没赶上本次加载 —— 点一下补注册并刷新，刷新后自动进双向。 */
     if (!S.hookInstalled) {
-      S.ui.setModeBtn(
-        S.permGranted ? T('btnReload', '刷新页面生效') : T('btnAuth', '双向需授权'),
-        S.permGranted
-          ? T('tipAuthRegistered',
-            '这个站点已经授权，但当前页面加载时脚本还没注册上。刷新一次即可')
-          : T('tipAuthNeed', '需要当前站点的访问权限，点一下会弹出授权框'),
-        false
-      );
+      S.ui.setModeBtn(T('btnEnable', '启用双向'),
+        T('tipNeedRegister',
+          '点一下会加载增强脚本并刷新页面，刷新完直接进入双向模式'), false);
       return;
     }
 

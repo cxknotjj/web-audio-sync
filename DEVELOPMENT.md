@@ -58,15 +58,17 @@ tabCapture  ──→  MediaStreamSource  ──→  DelayNode  ──→  desti
 ### 怎么启用
 
 1. 先把视频播起来
-2. 点图标接管，面板右下角会显示「双向需授权」
-3. 点它，浏览器弹出授权框，点「允许」
-4. 扩展会自动刷新页面，面板上出现「启用双向」，点一下切过去
+2. 点图标接管，面板右下角显示「启用双向」
+3. 点它。站点还没注册过增强脚本 → 后台补注册 + 自动刷新页面
+4. 刷新回来**自动进入双向**，不用再点第二次
 
-第 3 步能一次点完，靠的是**手势能撑过 content script → service worker 这一跳**。但前提是 service worker 里 `chrome.permissions.request` 之前不能有任何 `await` —— 哪怕只是先查一下有没有授权，手势也会失效，报 `This function must be called during a user gesture`。
+第 3 步不弹权限框：`host_permissions: ["*://*/*"]` 是安装时授予的（取消 `optional_host_permissions` 就是为了这一步：`permissions.request` 要求手势，而可选权限授予后还得再刷新一次才生效，等于每换一个站点要授权 + 刷新两轮）。
 
-第 4 步的刷新是自动的：脚本必须在 `document_start` 注入，而 `init segment`（定义音频编码参数的那段）只在播放器初始化时 append 一次，所以授权后不刷新等于没装。
+第 3 步的刷新躲不掉：脚本必须在 `document_start` 注入，而 `init segment`（定义音频编码参数的那段）只在播放器初始化时 append 一次，注册晚了就等于没装。
 
-**如果面板显示「刷新页面生效」而不是「双向需授权」**，说明站点早就授权了，只是当前页面加载时脚本还没注册上。点一下按钮就会补注册并自动刷新，不会再弹授权框——`permissions.request` 即使权限已存在也要求手势，这种情况走的是另一条不需要手势的通道。
+第 4 步「自动进入」靠的是一次性标记：`registerOnly(origin, tabId, true)` 会把 `autoEnter:<tabId>` 写进 `chrome.storage.session`，刷新后 `content.js` 通过 `checkOrigin` 取走它（取一次即删），`ads-enhance.js` 的 `armAutoEnter()` 上膛、`tryAutoEnter()` 在 video 就位后真正进入。没有这个标记就不会自动接管——否则每次打开视频页都会自己静音画面。
+
+**如果刷新后按钮还是「启用双向」**，说明补注册没成功（SW 被回收、或站点访问被改成「点击时」）。红色提示会写明原因，重试一次即可。
 
 ### 三条链路（按代价从低到高）
 
@@ -74,7 +76,7 @@ tabCapture  ──→  MediaStreamSource  ──→  DelayNode  ──→  desti
 
 | 顺序 | 链路 | 数据从哪来 | 额外带宽 | 代价 |
 | --- | --- | --- | --- | --- |
-| ① | **MSE 复用** | 被 hook 到的 `appendBuffer` 音频片段 | **零** | 要站点授权 + `document_start` 注入 |
+| ① | **MSE 复用** | 被 hook 到的 `appendBuffer` 音频片段 | **零** | 要按站点注册增强脚本 + `document_start` 注入 |
 | ② | **调试协议抓切片** | `chrome.debugger` + `Network.getResponseBody` 取回播放器**已经下载过**的 ts | **零** | 页面顶部出现「正在调试」黄条，每片一次 RPC |
 | ③ | **再拉一路** | `<audio src="同一路流">`，浏览器重新解码 | **双倍** | 无 |
 
@@ -113,7 +115,7 @@ ahead = enhAudio.buffered.end(末尾) - video.currentTime
 
 | 限制              | 说明                                                                                                               |
 | --------------- | ---------------------------------------------------------------------------------------------------------------- |
-| 三条链路各有前提        | **MSE 播放器**（`blob:`）走①，零额外带宽但要授权 + 刷新；**原生 HLS**（`.m3u8`）优先走②，抓不到再退③；**直连 mp4** 只能走③  |
+| 三条链路各有前提        | **MSE 播放器**（`blob:`）走①，零额外带宽，但首次要补注册脚本并刷新一次；**原生 HLS**（`.m3u8`）优先走②，抓不到再退③；**直连 mp4** 只能走③  |
 | 能提前多少取决于缓冲      | 只能提前到「已经下载到」的位置，超出会卡住等数据                                                                                         |
 | 误差几十毫秒          | 每 250ms 校正一次，偏差超过 40ms 才动，实测落在 20\~70ms                                                                          |
 | 和 tabCapture 的关系 | **不互斥**：进入双向模式只是把主视频静音、改由本地音轨出声，tabCapture 链路继续留着——而且此时它承载的正是那条本地音轨（所以两条链路要按符号分工，见下一节）。退出双向时 `videoEl.muted = false`，页面声音原样回来 |
@@ -534,7 +536,7 @@ audio.currentTime = video.currentTime − currentMs/1000
 | 触发条件 | 页面用 hls.js / dash.js 等 MSE 播放器 | `video.currentSrc` 是 `.m3u8` 且 mux.js 可用 | ①②都不成立，且 `currentSrc` 是 `.m3u8` / 直连媒体 |
 | 数据来源 | `addSourceBuffer` 处截获的 fMP4 片段 | 调试协议取回播放器已下载的 ts，mux.js 转 fMP4 | 浏览器对同一 URL 再解码一遍 |
 | 额外带宽 | **零** | **零** | **双倍** |
-| 需要的权限 | 站点授权 + 刷新一次 | 站点授权 + `debugger` 权限 | **零权限、零刷新** |
+| 需要的权限 | 按站点注册脚本 + 刷新一次 | `debugger` 权限（仅完整版） | **无** |
 | 副作用 | 无 | 页面顶部「正在调试此浏览器」黄条 | 无明显副作用，只是费流量 |
 
 **`video.currentSrc` 直接是 `.mpd`（`dash`）的页面三条链路都不给。** `<audio src>`
@@ -750,7 +752,7 @@ if (document.documentElement.dataset.adsHooked === '1') {
 manifest.json      MV3 清单
 build-info.js      构建标记，只有一行：完整版 capture:true / 上架版 capture:false
 background.js      service worker 入口：点图标接管、管理 offscreen、消息路由
-bg-auth.js         站点授权与增强脚本注册（permissions.request 的手势约束都在这）
+bg-auth.js         增强脚本的按站点注册、刷新后自动进入的标记（storage.session）
 bg-capture.js      原生 HLS 抓切片：chrome.debugger + Network.getResponseBody（仅完整版）
 offscreen.html/js  音频处理：getUserMedia → DelayNode → destination
 ads-i18n.js        界面文案的多语言：T(key, 中文原文) → 中/英

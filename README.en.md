@@ -110,8 +110,9 @@ By default you can only make audio **later**. The extension captures audio the b
 
 Bidirectional mode takes a different path: it reads the audio the page has **already downloaded but not yet played**, and plays it ahead of time. That only works for streaming video (progressive download), not fully downloaded files.
 
-- **Enable**: start playback → click the icon → click 「双向需授权」 on the panel → allow → the page reloads → click 「启用双向」
+- **Enable**: start playback → click the icon → click 「启用双向」 on the panel. The page reloads once and comes back already in bidirectional mode (the reload is how the enhancement script gets registered — no second click needed)
 - **Routes**: ① reuse the page's segments (no extra traffic) / ② grab already-downloaded segments (no extra traffic, full build only) / ③ fetch a second stream (roughly double traffic)
+- **Buffering**: on every site, the player's buffer target is raised from 30 s to 90 s — so "safe to advance" has more headroom and seeking doesn't stall at the edge (costs a few dozen MB of RAM, no extra traffic)
 - **Buffering, seeking, ad breaks, fullscreen, exit**: every behavior, automatic downgrade and fallback rule is documented in [USAGE.md (Chinese)](USAGE.md#3-双向模式)
 
 > Route ② is the only difference between the full and store builds. It requires the `debugger` permission, whose install warnings ("Read and change all your data on all websites", "Access the page debugger backend") are too heavy for a store listing.
@@ -151,9 +152,11 @@ Fixed; builds from 1.0.1 on include the fix. On sites that embed the player in a
 
 No video element was found. The page may still be loading, the player may live in another frame, or the content hasn't loaded yet. Wait for the page to finish loading and playback to start.
 
-**It says 「双向需授权」 (needs authorization), and clicking it errors**
+**The panel says 「启用双向」 and clicking it reloads the page**
 
-Authorization must happen during the click. If it doesn't respond, use the toolbar icon instead — an icon click is guaranteed to carry the user gesture.
+That's expected: the enhancement script has to be registered before the page loads, so the click registers it and reloads once. It enters bidirectional mode on its own when the page comes back — no second click.
+
+If it's still showing 「启用双向」 after the reload, the registration didn't go through (service worker was recycled, or site access was turned off). Check that the extension's site access isn't set to "on click" in the browser's extension manager, then try once more.
 
 **In bidirectional mode, audio is out of sync after seeking**
 

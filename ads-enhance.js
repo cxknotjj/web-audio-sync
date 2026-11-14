@@ -36,6 +36,26 @@
   const { syncTick, onVideoSeek } = E.sync;
   const { enterEnhanced } = E.route;
 
+  /* 刷新后自动进双向。用户点的是「启用双向」，刷新只是补装脚本的副作用，
+     不该让他刷新完再点一次。标记由 SW 按 tab 存，content 侧取到后在这里上膛。 */
+  let autoEnterArmed = false;
+
+  /** 现在就能进双向了吗（不看用户意图，只看条件）。
+   *  和 onModeClick 的前置判断保持一致：截到音轨、或本来就是能直接拉的页面。 */
+  function canEnterNow() {
+    if (S.hookReady) return true;
+    const k = pageKind();
+    return k === 'hls' || k === 'direct';
+  }
+
+  /** 刷新后自动进一次双向。content 侧在 video 就位后反复调，进过就撤膛。 */
+  function tryAutoEnter() {
+    if (!autoEnterArmed || S.enhanced) return;
+    if (!canEnterNow()) return;
+    autoEnterArmed = false;
+    enterEnhanced();
+  }
+
   /** 一次接管的统一收场：销毁音频元素、摘监听、复位状态、把延迟还给 DelayNode。
    *
    *  以前 enhFail 和 exitEnhanced 各写一遍，约 60 行几乎逐行相同 —— 而且已经
@@ -186,13 +206,13 @@
     if (S.enhanced) { exitEnhanced(); return; }
     if (S.hookReady) { enterEnhanced(); return; }
 
-    /* 直连媒体：不用截获、不用授权，直接拉一路 */
+    /* 直连媒体：不用截获、不用装脚本，直接拉一路 */
     const k = pageKind();
     if (k === 'hls' || k === 'direct') { enterEnhanced(); return; }
 
     if (!S.ui) return;
 
-    /* DASH 清单：别走到下面的授权流程 —— 授权 + 刷新之后再点还是不支持 */
+    /* DASH 清单：别走到下面的补注册流程 —— 装完脚本再点还是不支持 */
     if (k === 'dash') {
       S.ui.showToast(T('failDash', 'DASH（.mpd）暂不支持双向模式，延迟模式仍然可用。'));
       return;
@@ -205,36 +225,22 @@
       return;
     }
 
-    /* 已经授权过，只是当前页面没赶上注册：走只注册通道，不要再要一次权限。
-       permissions.request 即使权限已存在也要求手势，没必要为它多绕一圈。 */
-    if (S.permGranted) {
-      try {
-        const res = await chrome.runtime.sendMessage({
-          target: 'sw',
-          type: 'registerOnly',
-          origin: location.origin
-        });
-        S.ui.showToast((res && res.ok)
-          ? T('toastReRegistered', '已重新注册，正在刷新页面…')
-          : ((res && res.error) || T('errRegFailed', '注册失败')),
-          (res && res.ok) ? 'ok' : undefined);
-      } catch (e) {
-        S.ui.showToast(T('errRegRequest', '注册请求失败：') + ((e && e.message) || e));
-      }
-      return;
-    }
-
-    /* 还没 hook：先问 background 要站点权限，授权后刷新页面才生效 */
+    /* 权限随安装一次性授予，这里缺的只是增强脚本没赶上本次加载：
+       补注册 + 刷新。带上 autoEnter，刷新完 content 侧自己把双向开起来，
+       省掉「刷新之后还得再点一次」。 */
     try {
       const res = await chrome.runtime.sendMessage({
         target: 'sw',
-        type: 'requestEnhance',
-        origin: location.origin
+        type: 'registerOnly',
+        origin: location.origin,
+        autoEnter: true
       });
-      if (res && res.ok) S.ui.showToast(T('toastAuthorized', '已授权，正在刷新页面…'), 'ok');
-      else S.ui.showToast((res && res.error) || T('errAuthFailed', '授权失败'));
+      S.ui.showToast((res && res.ok)
+        ? T('toastLoadingScript', '正在加载增强脚本并刷新页面…')
+        : ((res && res.error) || T('errRegFailed', '加载失败')),
+        (res && res.ok) ? 'ok' : undefined);
     } catch (e) {
-      S.ui.showToast(T('errAuthRequest', '授权请求失败：') + ((e && e.message) || e));
+      S.ui.showToast(T('errRegRequest', '加载请求失败：') + ((e && e.message) || e));
     }
   }
 
@@ -245,6 +251,7 @@
     if (m.type === 'ready') {
       S.hookInstalled = true;
       updateModeUI();
+      tryAutoEnter();
       return;
     }
     if (m.type === 'track') {
@@ -260,12 +267,14 @@
       S.hookInstalled = true;
       S.hookReady = true;
       updateModeUI();
+      tryAutoEnter();
       return;
     }
     if (m.type === 'state') {
       S.hookInstalled = true;
       if (m.mime) { S.audioMime = m.mime; S.hookReady = true; }
       updateModeUI();
+      tryAutoEnter();
       return;
     }
     if (m.type === 'chunk') {
@@ -337,7 +346,10 @@
       S.cap.noteForeign();
     },
 
-    setPermGranted: function (v) { S.permGranted = !!v; updateModeUI(); },
+    /* SW 说「刚才那次刷新是为了装脚本，装完直接进双向」 */
+    armAutoEnter: function () { autoEnterArmed = true; tryAutoEnter(); },
+    tryAutoEnter: tryAutoEnter,
+
     setHookInstalled: function (v) { S.hookInstalled = !!v; updateModeUI(); }
   };
 

@@ -69,7 +69,8 @@ function makeFrame(opts) {
     isEnhanced: function () { return false; },
     exit: function () {},
     setHookInstalled: function () { state.hookInstalled = true; },
-    setPermGranted: function () {},
+    armAutoEnter: function () {},
+    tryAutoEnter: function () {},
     onSegChunk: function () {}
   };
 

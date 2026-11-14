@@ -8,11 +8,13 @@
             clearPendingEnhance, clearNeedGesture, pendingCache, PENDING_TTL */
 
 /* ================================================================
- * 站点授权与增强脚本注册
+ * 增强脚本的按站点注册
  *
- * 这里最要命的一条：permissions.request 只认当前任务的手势。
- * 所以取待授权状态的 takePending() 必须是同步调用，中间不能有 await，
- * 哪怕只是读一次 storage。
+ * 1.1.0 起 host_permissions 是安装时授予的全站权限，面板按钮走
+ * registerOnly() 直接补注册 —— 不需要权限、也不需要手势。
+ * 文件后半段那套 pending / 手势补偿是 optional 权限时代的遗留，
+ * 目前没有调用方（保留是因为删它要连带改 onClicked 和 toggle 里的
+ * stale 检查，收益不大）。
  * ================================================================ */
 const ENHANCED_IDS = ['ads-main', 'ads-content'];
 
@@ -140,12 +142,43 @@ async function ensureEnhanced() {
   } catch (e) {}
 }
 
+/* 刷新后自动进双向的一次性标记：按 tab 存，取一次就删。
+   storage.session 在同一浏览器会话内跨页面刷新保留，正好够用；不用
+   storage.local 是免得重启浏览器之后还残留一个「自动接管」的意图。 */
+const AUTO_ENTER_PREFIX = 'autoEnter:';
+const AUTO_ENTER_TTL = 90000;
+
+async function markAutoEnter(tabId) {
+  if (typeof tabId !== 'number') return;
+  try {
+    const o = {};
+    o[AUTO_ENTER_PREFIX + tabId] = Date.now();
+    await chrome.storage.session.set(o);
+  } catch (e) {}
+}
+
+async function takeAutoEnter(tabId) {
+  if (typeof tabId !== 'number') return false;
+  const k = AUTO_ENTER_PREFIX + tabId;
+  try {
+    const o = await chrome.storage.session.get(k);
+    const at = o && o[k];
+    if (!at) return false;
+    await chrome.storage.session.remove(k);
+    return Date.now() - at <= AUTO_ENTER_TTL;
+  } catch (e) {
+    return false;
+  }
+}
+
 /**
- * 只补注册，不申请权限。
- * 用在「站点早就授权了，只是脚本没注册上」的情况——这条路不需要手势，
- * 因为 permissions.request 即使权限已存在也照样要求 user gesture。
+ * 补注册增强脚本，然后刷新当前页。
+ * 站点访问权限随安装一次性授予，这条路不需要申请权限、也不需要手势。
+ *
+ * @param {boolean} autoEnter 刷新完是否直接进双向（用户点的是「启用双向」，
+ *                            刷新只是补装脚本的副作用，不该让他再点一次）
  */
-async function registerOnly(origin, tabId) {
+async function registerOnly(origin, tabId, autoEnter) {
   if (!origin || !/^https?:/i.test(origin)) {
     return { ok: false, error: '这个页面不支持（只对 http / https 站点生效）' };
   }
@@ -153,6 +186,7 @@ async function registerOnly(origin, tabId) {
   try {
     await rememberEnhancedOrigin(origin);
     await registerEnhanced([origin]);
+    if (autoEnter) await markAutoEnter(tabId);
 
     if (typeof tabId === 'number') {
       setTimeout(function () {
@@ -166,22 +200,13 @@ async function registerOnly(origin, tabId) {
 }
 
 /**
- * 面板问「这个站点到底授权了没有」。
- * 授权了但脚本没注入（页面在注册完成前就加载了）和压根没授权，
- * 是两种完全不同的情况，提示不能一样。
- * 顺便补一次注册，让用户下次刷新就能用上。
+ * content 侧启动时问一次：这次页面加载要不要顺手把双向开起来。
+ * 顺便补一次注册，让「注册完成前就加载了」的页面下次刷新就能用上。
  */
-async function checkOrigin(origin) {
-  if (!origin || !/^https?:/i.test(origin)) return { granted: false };
-  let granted = false;
-  try {
-    granted = await chrome.permissions.contains({ origins: [origin + '/*'] });
-  } catch (e) {}
-
-  if (granted) {
-    ensureEnhanced().catch(function () {});
-  }
-  return { granted: granted };
+async function checkOrigin(origin, tabId) {
+  if (!origin || !/^https?:/i.test(origin)) return { autoEnter: false };
+  try { ensureEnhanced().catch(function () {}); } catch (e) {}
+  return { autoEnter: await takeAutoEnter(tabId) };
 }
 
 /* 权限被撤销时把失效的站点从注册里摘掉 */
@@ -207,13 +232,13 @@ if (chrome.permissions.onRemoved) {
   });
 }
 
-/* ---------------- 双向模式授权 ----------------
- * chrome.permissions.request 要求调用发生在「用户手势」里。content script
- * 的点击经 sendMessage 到 SW 时，手势在跨进程那一步就丢了（实测报
- * "This function must be called during a user gesture"）。
+/* ---------------- 双向模式授权（遗留，当前无调用方） ----------------
+ * optional 权限时代的做法：host 权限按站点申请，而 permissions.request
+ * 要求发生在「用户手势」里。content script 的点击经 sendMessage 到 SW 时
+ * 手势在跨进程那一步就丢了，只能退回「登记意图、等下一次点图标」。
  *
- * 唯一可靠的手势来源是 action.onClicked —— 浏览器亲自派发。
- * 所以面板按钮只登记意图，真正的请求放到下一次点图标时执行。
+ * 现在权限随安装授予，这条路不再被调用；面板按钮走 registerOnly()。
+ * 留在这里的代码仍然能跑，但别在新增功能时照着它写。
  */
 
 const PENDING_KEY = 'pendingEnhance';
@@ -282,10 +307,12 @@ async function clearNeedGesture(tabId) {
  *
  * 关键：permissions.request 必须是这个消息处理器里「第一个异步操作」。
  * 手势能撑过 content script → service worker 这一跳，但撑不过任何 await。
- * 旧代码先 await permissions.contains()，手势就没了，必然报
- * "This function must be called during a user gesture"。
  *
- * 已授权的站点再调 request 会立即返回 true 且不弹框，所以不需要先 contains。
+ * 不过 1.1.0 起 host_permissions 已经是全站必需权限，这个 origin 必然已授予。
+ * 先 contains 问一句：授过了就直接往下走，压根不碰 request
+ * （request 只能请求 optional 权限，对必需权限会抛 not in optional permissions）。
+ * 没授过的情况留作兜底 —— 那时 contains 会先吃掉手势，request 报错，
+ * 用户重新点一次即可。这条分支在当前 manifest 下走不到。
  */
 function requestEnhanceInline(origin, tabId, sendResponse) {
   if (!origin || !/^https?:/i.test(origin)) {
@@ -293,7 +320,11 @@ function requestEnhanceInline(origin, tabId, sendResponse) {
     return false;
   }
 
-  chrome.permissions.request({ origins: [origin + '/*'] })
+  chrome.permissions.contains({ origins: [origin + '/*'] })
+    .then(function (yes) {
+      if (yes) return true;
+      return chrome.permissions.request({ origins: [origin + '/*'] });
+    })
     .then(function (granted) {
       if (!granted) {
         sendResponse({ ok: false, error: '没有授权。想用双向模式时可以再点一次。' });

@@ -260,7 +260,7 @@ async function toggle(tab) {
     await sendToTab(tabId, {
       type: 'panel-notice',
       kind: 'error',
-      text: '授权状态已失效，请重新点面板上的「双向需授权」。'
+      text: '上一步没走完（后台被浏览器回收了）。请重新点面板上的「启用双向」。'
     });
     return;
   }
@@ -325,9 +325,9 @@ async function flashBadge(tabId) {
  * 用另一条只含音频的 MediaSource 接住 —— 于是音频有了**独立时钟**，
  * currentTime 可以设到画面位置之后，这就是「声音提前」。
  *
- * 权限：需要在目标站点上跑 content script，且必须 document_start 注入
- * （否则拿不到 init segment）。用 optional_host_permissions，安装时不申请
- * 任何网站权限，用户主动启用时才按站点授权。
+ * 权限：增强脚本必须在 document_start 注入（否则拿不到 init segment），
+ * 所以需要站点访问权限。1.1.0 起 host_permissions 是安装时一次性授予的
+ * 全站权限 —— 增强脚本本身仍按站点注册，没启用过的站点不会跑它。
  */
 
 /* 拆出去的两块，importScripts 让它们和本文件共享同一个全局环境。
@@ -376,15 +376,20 @@ async function loadMux(tabId, frameId) {
 
 chrome.action.onClicked.addListener(function (tab) {
   /* 待授权：必须在这个同步执行段里直接发起请求。
-     permissions.request 只认当前任务的手势，只要 await 一次
-     （哪怕只是读 storage），就会报
-     "This function must be called during a user gesture"。
-     所以这里读的是内存镜像 pendingCache，不是 storage。 */
+     不过 1.1.0 起 host_permissions 已是全站必需权限，这里注定已授予 ——
+     先 contains 问一句，授过了就直接往下走，不碰 request
+     （request 只能请求 optional 权限，对必需权限会抛
+      "not in optional permissions"）。
+     没授过的情况留作兜底：那时会丢手势，由 catch 报出来。 */
   const p = pendingCache;
   if (p && p.tabId === tab.id && Date.now() - (p.at || 0) <= PENDING_TTL) {
     pendingCache = null;
 
-    chrome.permissions.request({ origins: [p.origin + '/*'] })
+    chrome.permissions.contains({ origins: [p.origin + '/*'] })
+      .then(function (yes) {
+        if (yes) return true;
+        return chrome.permissions.request({ origins: [p.origin + '/*'] });
+      })
       .then(function (granted) {
         return settleEnhance(tab.id, p.origin, granted, null);
       })
@@ -455,10 +460,11 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
     case 'requestEnhance':
       return requestEnhanceInline(msg.origin, sender && sender.tab && sender.tab.id, sendResponse);
     case 'checkOrigin':
-      checkOrigin(msg.origin).then(sendResponse);
+      checkOrigin(msg.origin, sender && sender.tab && sender.tab.id).then(sendResponse);
       return true;
     case 'registerOnly':
-      registerOnly(msg.origin, sender && sender.tab && sender.tab.id).then(sendResponse);
+      registerOnly(msg.origin, sender && sender.tab && sender.tab.id, msg.autoEnter)
+        .then(sendResponse);
       return true;
     case 'captureStart':
       /* 上架版没有抓切片模块。正常也走不到这里（内容脚本的 pickRoute 会先

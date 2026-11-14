@@ -111,7 +111,7 @@ Partner Center 各字段的**可复制文案**。除特别说明外，均为中�
 
 ## 几点必须提前说清楚的限制
 
-- **默认模式只能延后。** 实时音频流里没有"未来"的样本，物理上做不到让声音提前。要提前需要切到可选的「双向模式」，它会按页面播放方式自动挑一条代价最低的链路：① MSE 播放器（`video.src` 是 `blob:`）复用页面已下载的音频片段，零额外带宽，首次需要按站点授权；② 直连媒体（`.m3u8` / `.mp4`）由浏览器对同一路流再解码一遍、只取声音，不需要任何权限，但流量约翻倍。**面板上会实时显示当前走的是哪一条、还要不要等、最多能提前多少秒。** 实时媒体流（MediaStream，如 WebRTC）两条都不适用，面板会如实写明。
+- **默认模式只能延后。** 实时音频流里没有"未来"的样本，物理上做不到让声音提前。要提前需要切到可选的「双向模式」，它会按页面播放方式自动挑一条代价最低的链路：① MSE 播放器（`video.src` 是 `blob:`）复用页面已下载的音频片段，零额外带宽（增强脚本只在你点过「启用双向」的站点注册）；② 直连媒体（`.m3u8` / `.mp4`）由浏览器对同一路流再解码一遍、只取声音，不需要任何注册，但流量约翻倍。**面板上会实时显示当前走的是哪一条、还要不要等、最多能提前多少秒。** 实时媒体流（MediaStream，如 WebRTC）两条都不适用，面板会如实写明。
 - **捕获的是整个标签页。** 页面里的广告声、提示音会一起被延迟。只挑视频音轨做不到——那需要接管播放器本身。
 - **接管期间，页面自己的音量条看起来正常但没有声音。** 这是浏览器的强制行为（捕获后标签页静音），不是 bug。声音从扩展这条链路出来。
 - **一次只能接管一个标签页。**
@@ -315,17 +315,43 @@ Injects a single content script into the tab the user already granted via active
 表单里如果 `debugger` 仍显示为待说明项，说明上传的是完整版 zip，请改传
 `dist/audio-delay-sync-<version>-store.zip`。
 
-**optional_host_permissions (`*://*/*`)**
+**host_permissions (`*://*/*`)** — 1.1.0 起改为必需
 
 ```
-OPTIONAL — never granted at install. After installation the extension shows "no website access" and works on any site using only activeTab.
+Required since 1.1.0. The package ships a 2 KB script (inject-buffer.js) that runs
+at document_start in the page's main world and raises the hls.js buffer target from
+30 s to 90 s, so the "advance the audio" feature has enough downloaded data to work
+with on the sites people actually watch.
 
-This permission backs the optional bidirectional mode. It is requested per-origin only when the user clicks the "启用双向" (enable bidirectional) button on the page panel and confirms the browser prompt. The request is issued synchronously inside the message handler, because Chromium carries the click gesture for exactly one turn — any preceding await drops it. If a browser build does not forward the gesture, the extension falls back to asking the user to click the toolbar icon, which always carries one. After granting, the extension reloads that tab automatically, because the injected script has to run at document_start. Its sole purpose is to register a document_start script on that one site, which copies audio segments that the page's own player has ALREADY downloaded (the page uses Media Source Extensions, so segments pass through SourceBuffer.appendBuffer).
+Why it cannot be optional:
+hls.js stores its buffer configuration on each player instance and fixes it at
+construction time. The only reliable moment to change it is before the page creates
+its player — which means injecting before any page script runs. Injecting that early
+requires a host permission granted at install time. activeTab is only granted after
+the user clicks the toolbar icon, which is far too late: the player already exists.
 
-Why it is technically required: MediaSource.appendBuffer runs at document_start, before the extension can be invoked by a user gesture. Without a pre-registered script the very first segment is missed and the audio track can never be initialised.
+Why all sites:
+the feature is meant to work on whatever site the user happens to be watching; that
+set is not knowable in advance.
 
-No page content is read, no request is made, nothing is transmitted. The copied bytes stay in memory and are fed to a local MediaSource belonging to the extension. If the user never uses the bidirectional mode, no host permission is ever granted.
+What the script does:
+it wraps Hls.prototype.attachMedia and sets two numbers (maxBufferLength,
+maxMaxBufferLength) on the instance's own config object.
+
+What it does NOT do:
+it reads nothing — no page text, links, form fields, images or URLs. It copies no
+audio, sends no messages, makes no requests, and stores nothing. If a page does not
+use hls.js, the script is a no-op.
+
+Scope note for the reviewer:
+the extension still does not request "tabs". The other two content scripts
+(inject-main.js and the panel) are NOT injected everywhere — they are registered
+per-origin, only for sites the user explicitly enabled, because those copy audio
+segments from the page's own player.
 ```
+
+> 上架版的 5 项 `permissions` 不变，只是多了一条全站 `host_permissions`。
+> 审核表单里 `host_permissions` 通常会单独出现一项，把上面这段直接粘过去。
 
 ### Remote code（是否使用远程代码）
 
@@ -402,14 +428,14 @@ No page text, form fields, links, images or URL paths are read.
 
 **② Web history（`chrome.storage.local` 里有 `enhancedOrigins`）**
 
-这个键存的是**用户亲手点过「启用双向」并确认过授权框的站点 origin 列表**，不是浏览记录。
-它只在撤销/恢复授权时用。没有站点被授权时该键为空。回答话术：
+这个键存的是**用户亲手点过「启用双向」的站点 origin 列表**，不是浏览记录。
+它只用来给这些站点重新注册增强脚本。没有站点被启用时该键为空。回答话术：
 
 ```
 chrome.storage.local holds exactly two keys: lastDelayMs (the slider value, an integer)
-and enhancedOrigins (the origins of sites where the user explicitly granted the
-optional per-site permission). The latter is the bookkeeping Chromium requires to
-re-register the document_start script, not a browsing log; it contains no page titles,
+and enhancedOrigins (the origins of sites where the user explicitly turned on the
+bidirectional mode). The latter is the bookkeeping Chromium requires to re-register
+the document_start script, not a browsing log; it contains no page titles,
 URLs or timestamps, and stays empty unless the user opts in.
 ```
 

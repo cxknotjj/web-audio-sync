@@ -161,7 +161,7 @@ check('enh 就位', !!(ADS && ADS.enh));
 
 console.log('\n[2] 对外接口完整性');
 const API = ['init', 'isEnhanced', 'isCapturing', 'kind', 'pickVideo',
-  'updateModeUI', 'exit', 'onSegChunk', 'setPermGranted', 'setHookInstalled'];
+  'updateModeUI', 'exit', 'onSegChunk', 'armAutoEnter', 'tryAutoEnter', 'setHookInstalled'];
 for (const k of API) {
   check('enh.' + k, ADS && typeof ADS.enh[k] === 'function', typeof (ADS && ADS.enh[k]));
 }
@@ -825,6 +825,12 @@ console.log('\n[22] 画面已经播到 6 分钟才启用双向：时间轴要能
 
   check('超过 1 小时的差值仍按异常丢掉', Math.abs(S.ptsOffset - 1.6) < 0.01, S.ptsOffset);
 }
+
+/* 自动进入双向的地方没有单测，是故意的：要观测「进没进」必须让
+   enterEnhanced 真的建出 MediaSource / <audio>，沙箱里得伪造
+   createObjectURL、SourceBuffer、audio 的一大堆方法 —— 造出来的环境
+   和真实差异太大，测过了也说明不了什么。这条路径靠 [2] 的接口完整性
+   兜住「导出漏了」，行为验证走真机（见 DEVELOPMENT.md）。 */
 
 console.log(failures === 0 ? '\n全部通过' : '\n失败 ' + failures + ' 项');
 process.exit(failures === 0 ? 0 : 1);

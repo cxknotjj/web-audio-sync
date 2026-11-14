@@ -105,6 +105,8 @@
 
   const announceTimer = setInterval(function () {
     announceVideo();
+    /* 刷新补装脚本之后要自动进双向：video 可能比脚本晚出现，靠这轮询等它 */
+    if (E && E.tryAutoEnter) E.tryAutoEnter();
     if (announced) clearInterval(announceTimer);
   }, ANNOUNCE_POLL_MS);
   setTimeout(function () { clearInterval(announceTimer); }, ANNOUNCE_GIVEUP_MS);
@@ -257,8 +259,9 @@
     })
     .catch(function () {});
 
-  /* 这个站点到底授权没有：决定按钮显示「双向需授权」还是「刷新页面生效」 */
+  /* 这次加载是不是「点启用双向 → 补装脚本 → 刷新」带来的。是就把双向开起来，
+     不要求用户刷新完再点一次。 */
   chrome.runtime.sendMessage({ target: 'sw', type: 'checkOrigin', origin: location.origin })
-    .then(function (r) { E.setPermGranted(!!(r && r.granted)); })
+    .then(function (r) { if (r && r.autoEnter && E && E.armAutoEnter) E.armAutoEnter(); })
     .catch(function () {});
 })();

@@ -137,23 +137,14 @@
   "failDash": {
     "message": "DASH (.mpd) isn't supported in bidirectional mode yet; delay mode still works."
   },
-  "toastReRegistered": {
-    "message": "Re-registered, reloading the page…"
-  },
   "errRegFailed": {
-    "message": "registration failed"
+    "message": "could not load the enhancement script"
   },
   "errRegRequest": {
-    "message": "Registration request failed: "
+    "message": "Loading request failed: "
   },
-  "toastAuthorized": {
-    "message": "Authorised, reloading the page…"
-  },
-  "errAuthFailed": {
-    "message": "authorisation failed"
-  },
-  "errAuthRequest": {
-    "message": "Authorisation request failed: "
+  "toastLoadingScript": {
+    "message": "Loading the enhancement script and reloading the page…"
   },
   "pmUsePrefix": {
     "message": "Will use "
@@ -230,17 +221,8 @@
   "tipNoBiDash": {
     "message": "The page's own player decodes this DASH (.mpd) manifest, so there is no audio channel to reuse. Delay mode still works"
   },
-  "btnReload": {
-    "message": "Reload to apply"
-  },
-  "btnAuth": {
-    "message": "Needs site access"
-  },
-  "tipAuthRegistered": {
-    "message": "This site is already authorised, but the scripts weren't registered when this page loaded. One reload is enough"
-  },
-  "tipAuthNeed": {
-    "message": "Needs access to this site — clicking pops up the permission prompt"
+  "tipNeedRegister": {
+    "message": "Clicking loads the enhancement script and reloads the page, then bidirectional mode starts on its own"
   },
   "btnWaitTrack": {
     "message": "Waiting for audio track"

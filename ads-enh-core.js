@@ -51,7 +51,7 @@
       name: T('routeSrcName', '重新拉一路'),
       meta: T('routeSrcTag', '约双倍流量'),
       hint: T('routeSrcDesc',
-        '同一条流再解码一遍只取声音。不需要授权、不需要刷新，但下载量大约翻倍')
+        '同一条流再解码一遍只取声音。不用装脚本、不用刷新，但下载量大约翻倍')
     }
   };
 
@@ -70,9 +70,6 @@
        两者必须分开 —— 原生 HLS 页面 hook 装得上，但永远截不到东西。 */
     hookInstalled: false,
     hookReady: false,
-    /* 站点是否已授权。和「脚本有没有注入」是两件事：
-       授权了但页面在注册完成前就加载，脚本仍然进不来。 */
-    permGranted: false,
 
     audioMime: '',
     chunks: [],
